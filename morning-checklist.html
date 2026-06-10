@@ -35,7 +35,7 @@
 
     /* ── Header ── */
     .header {
-      padding: 52px 24px 10px;
+      padding: max(14px, env(safe-area-inset-top, 14px)) 20px 4px;
       flex-shrink: 0;
     }
 
@@ -43,7 +43,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 22px;
+      margin-bottom: 6px;
     }
 
     .back {
@@ -70,21 +70,22 @@
     .reset-btn:active { opacity: 0.6; }
 
     h1 {
-      font-size: 2.4rem;
+      font-size: 1.6rem;
       font-weight: 700;
-      letter-spacing: -0.7px;
+      letter-spacing: -0.4px;
       line-height: 1;
+      display: inline;
     }
 
     .date-sub {
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       color: var(--text-muted);
-      margin-top: 6px;
+      margin-top: 2px;
     }
 
     /* ── Progress ── */
     .prog-wrap {
-      padding: 18px 24px 10px;
+      padding: 10px 20px 6px;
       flex-shrink: 0;
     }
 
@@ -263,31 +264,6 @@
       border-top: 1px solid var(--sep);
     }
 
-    .group-toggle {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-
-    .gtog {
-      flex: 1;
-      padding: 7px;
-      border-radius: 9px;
-      border: 1px solid var(--sep);
-      background: none;
-      color: var(--text-muted);
-      font-size: 0.82rem;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s;
-    }
-
-    .gtog.active {
-      background: var(--surface-hi);
-      color: var(--text);
-      border-color: var(--accent);
-    }
 
     .add-inner {
       display: flex;
@@ -360,10 +336,6 @@
   </div>
 
   <div class="add-wrap">
-    <div class="group-toggle">
-      <button class="gtog active" id="togMorning" onclick="setAddGroup(null)">Morning</button>
-      <button class="gtog" id="togPack" onclick="setAddGroup('pack')">Pack</button>
-    </div>
     <div class="add-inner">
       <input id="newTask" type="text" placeholder="Add a task…" autocomplete="off"
              onkeydown="if(event.key==='Enter') addTask()" />
@@ -409,14 +381,6 @@
     while (state.done.length < tasks.length) state.done.push(false);
     state.done = state.done.slice(0, tasks.length);
 
-    let addGroup = null;
-
-    function setAddGroup(g) {
-      addGroup = g;
-      document.getElementById('togMorning').classList.toggle('active', g === null);
-      document.getElementById('togPack').classList.toggle('active', g === 'pack');
-    }
-
     function save() {
       localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
       localStorage.setItem(STATE_KEY, JSON.stringify(state));
@@ -430,7 +394,7 @@
       const input = document.getElementById('newTask');
       const text = input.value.trim();
       if (!text) return;
-      tasks.push({ text, group: addGroup });
+      tasks.push({ text, group: null });
       state.done.push(false);
       input.value = '';
       save(); render();
