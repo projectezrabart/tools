@@ -440,12 +440,40 @@
       initDrag();
     }
 
-    // ── Touch drag-to-reorder ──────────────────────────────────────────────
+    // ── Touch drag-to-reorder + tap-to-toggle ─────────────────────────────
     let drag = null;
+    let tapTrack = null;
 
     function initDrag() {
       document.querySelectorAll('.task:not(.is-done) .grip').forEach(grip => {
         grip.addEventListener('touchstart', onDragStart, { passive: false });
+      });
+
+      document.querySelectorAll('.task').forEach(task => {
+        const idx = parseInt(task.dataset.idx);
+
+        // Record touch start (for movement threshold check)
+        task.addEventListener('touchstart', e => {
+          if (drag || e.target.closest('.grip') || e.target.closest('.del')) return;
+          tapTrack = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, { passive: true });
+
+        // Toggle on tap — fires instantly, no iOS double-tap delay
+        task.addEventListener('touchend', e => {
+          if (!tapTrack || drag) { tapTrack = null; return; }
+          const dx = Math.abs(e.changedTouches[0].clientX - tapTrack.x);
+          const dy = Math.abs(e.changedTouches[0].clientY - tapTrack.y);
+          tapTrack = null;
+          if (dx > 8 || dy > 8) return; // was a scroll, not a tap
+          e.preventDefault(); // suppress the ghost click that follows
+          toggle(idx);
+        });
+
+        // Desktop mouse click (touch devices never reach here due to preventDefault above)
+        task.addEventListener('click', e => {
+          if (e.target.closest('.grip') || e.target.closest('.del')) return;
+          toggle(idx);
+        });
       });
     }
 
