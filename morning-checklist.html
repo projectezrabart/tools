@@ -249,6 +249,25 @@
     .task:hover .del,
     .task:active .del { opacity: 1; }
 
+    /* Inline edit state */
+    .task.editing {
+      background: var(--surface-hi);
+      border: 1px solid var(--accent);
+    }
+
+    .edit-input {
+      flex: 1;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      font-weight: 450;
+      color: var(--text);
+      outline: none;
+      font-family: inherit;
+      padding: 2px 0;
+      min-width: 0;
+    }
+
     .empty-msg {
       text-align: center;
       color: var(--text-muted);
@@ -410,8 +429,49 @@
       return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    function escAttr(s) {
+      return escHtml(s).replace(/"/g, '&quot;');
+    }
+
+    // ── Inline edit ───────────────────────────────────────────────────────
+    let editingIdx = null;
+
+    function startEdit(idx) {
+      editingIdx = idx;
+      render();
+      const input = document.getElementById('edit-input');
+      if (input) { input.focus(); input.select(); }
+    }
+
+    function commitEdit(idx) {
+      const input = document.getElementById('edit-input');
+      if (!input) return;
+      const text = input.value.trim();
+      if (text) tasks[idx].text = text;
+      editingIdx = null;
+      save(); render();
+    }
+
+    function cancelEdit() {
+      editingIdx = null;
+      render();
+    }
+
+    function handleEditKey(e, idx) {
+      if (e.key === 'Enter') { e.preventDefault(); commitEdit(idx); }
+      if (e.key === 'Escape') cancelEdit();
+    }
+
     function taskHtml(t, i, isDone) {
       const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
+      if (editingIdx === i) {
+        return `<div class="task editing" data-idx="${i}" data-group="${t.group || 'prep'}">
+          ${grip}
+          <input class="edit-input" id="edit-input" value="${escAttr(t.text)}"
+                 onkeydown="handleEditKey(event, ${i})"
+                 onblur="commitEdit(${i})" />
+        </div>`;
+      }
       return `<div class="task${isDone ? ' is-done' : ''}" data-idx="${i}" data-group="${t.group || 'prep'}">
         ${grip}
         <div class="check"><span class="check-mark">✓</span></div>
@@ -464,12 +524,14 @@
       initDrag();
     }
 
-    // ── Touch drag-to-reorder + tap-to-toggle ─────────────────────────────
+    // ── Touch drag-to-reorder + tap-to-toggle + long-press-to-edit ───────
     let drag = null;
     let tapTrack = null;
+    let longPressTimer = null;
+    let isLongPress = false;
 
     function initDrag() {
-      document.querySelectorAll('.task:not(.is-done) .grip').forEach(grip => {
+      document.querySelectorAll('.task:not(.is-done):not(.editing) .grip').forEach(grip => {
         grip.addEventListener('touchstart', onDragStart, { passive: false });
       });
 
@@ -477,11 +539,27 @@
         const idx = parseInt(task.dataset.idx);
 
         task.addEventListener('touchstart', e => {
-          if (drag || e.target.closest('.grip') || e.target.closest('.del')) return;
+          if (drag || e.target.closest('.grip') || e.target.closest('.del') || e.target.closest('.edit-input')) return;
           tapTrack = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+          // Long press — 500ms hold triggers edit
+          if (longPressTimer) clearTimeout(longPressTimer);
+          longPressTimer = setTimeout(() => {
+            longPressTimer = null;
+            isLongPress = true;
+            tapTrack = null;
+            if (navigator.vibrate) navigator.vibrate(40);
+            startEdit(idx);
+          }, 500);
+        }, { passive: true });
+
+        task.addEventListener('touchmove', () => {
+          if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
         }, { passive: true });
 
         task.addEventListener('touchend', e => {
+          if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+          if (isLongPress) { isLongPress = false; tapTrack = null; return; }
           if (!tapTrack || drag) { tapTrack = null; return; }
           const dx = Math.abs(e.changedTouches[0].clientX - tapTrack.x);
           const dy = Math.abs(e.changedTouches[0].clientY - tapTrack.y);
@@ -492,7 +570,7 @@
         });
 
         task.addEventListener('click', e => {
-          if (e.target.closest('.grip') || e.target.closest('.del')) return;
+          if (e.target.closest('.grip') || e.target.closest('.del') || e.target.closest('.edit-input')) return;
           toggle(idx);
         });
       });
