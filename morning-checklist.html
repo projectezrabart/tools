@@ -409,14 +409,14 @@
       const undone = tasks.map((t, i) => [t, i]).filter(([, i]) => !state.done[i]);
       const done   = tasks.map((t, i) => [t, i]).filter(([, i]) =>  state.done[i]);
 
-      const grip = `<span class="grip" onclick="event.stopPropagation()"><span></span><span></span><span></span></span>`;
+      const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
 
       let html = '';
       if (!tasks.length) {
         html = '<div class="empty-msg">No tasks yet — add one below</div>';
       } else {
         undone.forEach(([task, idx]) => {
-          html += `<div class="task" data-idx="${idx}" onclick="toggle(${idx})">
+          html += `<div class="task" data-idx="${idx}">
             ${grip}
             <div class="check"><span class="check-mark">✓</span></div>
             <span class="task-text">${escHtml(task)}</span>
@@ -426,7 +426,7 @@
         if (done.length) {
           html += `<div class="section-label">Completed</div>`;
           done.forEach(([task, idx]) => {
-            html += `<div class="task is-done" data-idx="${idx}" onclick="toggle(${idx})">
+            html += `<div class="task is-done" data-idx="${idx}">
               ${grip}
               <div class="check"><span class="check-mark">✓</span></div>
               <span class="task-text">${escHtml(task)}</span>
@@ -440,12 +440,40 @@
       initDrag();
     }
 
-    // ── Touch drag-to-reorder ──────────────────────────────────────────────
+    // ── Touch drag-to-reorder + tap-to-toggle ─────────────────────────────
     let drag = null;
+    let tapTrack = null;
 
     function initDrag() {
       document.querySelectorAll('.task:not(.is-done) .grip').forEach(grip => {
         grip.addEventListener('touchstart', onDragStart, { passive: false });
+      });
+
+      document.querySelectorAll('.task').forEach(task => {
+        const idx = parseInt(task.dataset.idx);
+
+        // Record touch start (for movement threshold check)
+        task.addEventListener('touchstart', e => {
+          if (drag || e.target.closest('.grip') || e.target.closest('.del')) return;
+          tapTrack = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, { passive: true });
+
+        // Toggle on tap — fires instantly, no iOS double-tap delay
+        task.addEventListener('touchend', e => {
+          if (!tapTrack || drag) { tapTrack = null; return; }
+          const dx = Math.abs(e.changedTouches[0].clientX - tapTrack.x);
+          const dy = Math.abs(e.changedTouches[0].clientY - tapTrack.y);
+          tapTrack = null;
+          if (dx > 8 || dy > 8) return; // was a scroll, not a tap
+          e.preventDefault(); // suppress the ghost click that follows
+          toggle(idx);
+        });
+
+        // Desktop mouse click (touch devices never reach here due to preventDefault above)
+        task.addEventListener('click', e => {
+          if (e.target.closest('.grip') || e.target.closest('.del')) return;
+          toggle(idx);
+        });
       });
     }
 
