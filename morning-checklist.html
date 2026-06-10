@@ -135,8 +135,9 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: var(--text-muted);
-      padding: 16px 6px 6px;
+      padding: 20px 6px 8px;
     }
+    .section-label.first { padding-top: 8px; }
 
     /* Task item */
     .task {
@@ -393,15 +394,14 @@
       { text: 'Work jacket',              group: 'pack' },
     ];
 
+    // v3 key — starts fresh with the correct task list
+    const TASKS_KEY = 'morning_tasks_v3';
+    const STATE_KEY = 'morning_state_v3';
+
     const todayStr = () => new Date().toISOString().slice(0, 10);
 
-    let tasks = JSON.parse(localStorage.getItem('morning_tasks') || JSON.stringify(DEFAULT_TASKS));
-    let state = JSON.parse(localStorage.getItem('morning_state') || '{}');
-
-    // Migrate old string format
-    if (tasks.length > 0 && typeof tasks[0] === 'string') {
-      tasks = tasks.map(t => ({ text: t, group: null }));
-    }
+    let tasks = JSON.parse(localStorage.getItem(TASKS_KEY) || JSON.stringify(DEFAULT_TASKS));
+    let state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
 
     if (state.date !== todayStr()) {
       state = { date: todayStr(), done: new Array(tasks.length).fill(false) };
@@ -418,8 +418,8 @@
     }
 
     function save() {
-      localStorage.setItem('morning_tasks', JSON.stringify(tasks));
-      localStorage.setItem('morning_state', JSON.stringify(state));
+      localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+      localStorage.setItem(STATE_KEY, JSON.stringify(state));
     }
 
     function toggle(idx) { state.done[idx] = !state.done[idx]; save(); render(); }
@@ -446,6 +446,16 @@
       return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    function taskHtml(t, i, isDone) {
+      const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
+      return `<div class="task${isDone ? ' is-done' : ''}" data-idx="${i}" data-group="${t.group || 'prep'}">
+        ${grip}
+        <div class="check"><span class="check-mark">✓</span></div>
+        <span class="task-text">${escHtml(t.text)}</span>
+        <button class="del" onclick="event.stopPropagation(); removeTask(${i})">✕</button>
+      </div>`;
+    }
+
     function render() {
       document.getElementById('dateSub').textContent = new Date().toLocaleDateString('en-NZ', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -455,52 +465,39 @@
       const total = tasks.length;
       document.getElementById('progLabel').textContent = `${doneCount} of ${total} done`;
       document.getElementById('progFill').style.width = total ? `${(doneCount / total) * 100}%` : '0%';
-      document.getElementById('banner').style.display = (total > 0 && doneCount === total) ? 'block' : 'none';
 
-      const all     = tasks.map((t, i) => ({ t, i }));
-      const undone  = all.filter(({ i }) => !state.done[i]);
-      const done    = all.filter(({ i }) =>  state.done[i]);
+      const prepItems = tasks.map((t, i) => ({ t, i })).filter(({ t }) => !t.group);
+      const packItems = tasks.map((t, i) => ({ t, i })).filter(({ t }) => t.group === 'pack');
 
-      const morning = undone.filter(({ t }) => !t.group);
-      const pack    = undone.filter(({ t }) => t.group === 'pack');
+      const prepAllDone = prepItems.length > 0 && prepItems.every(({ i }) => state.done[i]);
+      const packAllDone = packItems.length > 0 && packItems.every(({ i }) => state.done[i]);
+      const allDone = (prepItems.length === 0 || prepAllDone) && (packItems.length === 0 || packAllDone);
 
-      const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
+      document.getElementById('banner').style.display = (total > 0 && allDone) ? 'block' : 'none';
 
       let html = '';
-      if (!tasks.length) {
-        html = '<div class="empty-msg">No tasks yet — add one below</div>';
-      } else {
-        morning.forEach(({ t, i }) => {
-          html += taskHtml(t, i, grip);
-        });
+      let isFirst = true;
 
-        if (pack.length) {
-          html += `<div class="section-label">Pack</div>`;
-          pack.forEach(({ t, i }) => {
-            html += taskHtml(t, i, grip);
-          });
-        }
-
-        if (done.length) {
-          html += `<div class="section-label">Completed</div>`;
-          done.forEach(({ t, i }) => {
-            html += taskHtml(t, i, grip, true);
-          });
-        }
+      // Prep section — disappears when all prep tasks done
+      if (prepItems.length && !prepAllDone) {
+        html += `<div class="section-label${isFirst ? ' first' : ''}">Prep</div>`;
+        isFirst = false;
+        prepItems.filter(({ i }) => !state.done[i]).forEach(({ t, i }) => { html += taskHtml(t, i, false); });
+        prepItems.filter(({ i }) =>  state.done[i]).forEach(({ t, i }) => { html += taskHtml(t, i, true);  });
       }
+
+      // Pack section — disappears when all pack tasks done
+      if (packItems.length && !packAllDone) {
+        html += `<div class="section-label${isFirst ? ' first' : ''}">Pack</div>`;
+        isFirst = false;
+        packItems.filter(({ i }) => !state.done[i]).forEach(({ t, i }) => { html += taskHtml(t, i, false); });
+        packItems.filter(({ i }) =>  state.done[i]).forEach(({ t, i }) => { html += taskHtml(t, i, true);  });
+      }
+
+      if (!html && total === 0) html = '<div class="empty-msg">No tasks yet — add one below</div>';
 
       document.getElementById('taskList').innerHTML = html;
       initDrag();
-    }
-
-    function taskHtml(t, i, grip, isDone = false) {
-      const g = t.group || 'morning';
-      return `<div class="task${isDone ? ' is-done' : ''}" data-idx="${i}" data-group="${g}">
-        ${grip}
-        <div class="check"><span class="check-mark">✓</span></div>
-        <span class="task-text">${escHtml(t.text)}</span>
-        <button class="del" onclick="event.stopPropagation(); removeTask(${i})">✕</button>
-      </div>`;
     }
 
     // ── Touch drag-to-reorder + tap-to-toggle ─────────────────────────────
@@ -590,7 +587,7 @@
         // Insert after the last undone item in the same group
         let insertPos = tasks.length;
         for (let i = tasks.length - 1; i >= 0; i--) {
-          if (!state.done[i] && (tasks[i].group || 'morning') === (taskItem.group || 'morning')) {
+          if (!state.done[i] && (tasks[i].group || 'prep') === (taskItem.group || 'prep')) {
             insertPos = i + 1;
             break;
           }
