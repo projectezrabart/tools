@@ -39,6 +39,13 @@
       flex-shrink: 0;
     }
 
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
     .back {
       display: inline-flex;
       align-items: center;
@@ -46,10 +53,21 @@
       color: var(--accent);
       text-decoration: none;
       font-size: 1rem;
-      margin-bottom: 22px;
     }
 
     .back svg { width: 9px; height: 15px; }
+
+    .reset-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+    }
+
+    .reset-btn:active { opacity: 0.6; }
 
     h1 {
       font-size: 2.4rem;
@@ -133,6 +151,7 @@
       user-select: none;
       -webkit-user-select: none;
       transition: background 0.15s, opacity 0.2s;
+      cursor: pointer;
     }
 
     .task.is-ghost { opacity: 0.25; }
@@ -288,12 +307,15 @@
 <body>
 
   <div class="header">
-    <a class="back" href="index.html">
-      <svg viewBox="0 0 9 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="7.5,1 1.5,7.5 7.5,14"/>
-      </svg>
-      Home
-    </a>
+    <div class="nav-row">
+      <a class="back" href="index.html">
+        <svg viewBox="0 0 9 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.5,1 1.5,7.5 7.5,14"/>
+        </svg>
+        Home
+      </a>
+      <button class="reset-btn" onclick="resetToday()">Reset</button>
+    </div>
     <h1>Morning</h1>
     <div class="date-sub" id="dateSub"></div>
   </div>
@@ -351,6 +373,8 @@
 
     function toggle(idx) { state.done[idx] = !state.done[idx]; save(); render(); }
 
+    function resetToday() { state.done = new Array(tasks.length).fill(false); save(); render(); }
+
     function addTask() {
       const input = document.getElementById('newTask');
       const text = input.value.trim();
@@ -385,28 +409,28 @@
       const undone = tasks.map((t, i) => [t, i]).filter(([, i]) => !state.done[i]);
       const done   = tasks.map((t, i) => [t, i]).filter(([, i]) =>  state.done[i]);
 
-      const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
+      const grip = `<span class="grip" onclick="event.stopPropagation()"><span></span><span></span><span></span></span>`;
 
       let html = '';
       if (!tasks.length) {
         html = '<div class="empty-msg">No tasks yet — add one below</div>';
       } else {
         undone.forEach(([task, idx]) => {
-          html += `<div class="task" data-idx="${idx}">
+          html += `<div class="task" data-idx="${idx}" onclick="toggle(${idx})">
             ${grip}
-            <div class="check" onclick="toggle(${idx})"><span class="check-mark">✓</span></div>
+            <div class="check"><span class="check-mark">✓</span></div>
             <span class="task-text">${escHtml(task)}</span>
-            <button class="del" onclick="removeTask(${idx})">✕</button>
+            <button class="del" onclick="event.stopPropagation(); removeTask(${idx})">✕</button>
           </div>`;
         });
         if (done.length) {
           html += `<div class="section-label">Completed</div>`;
           done.forEach(([task, idx]) => {
-            html += `<div class="task is-done" data-idx="${idx}">
+            html += `<div class="task is-done" data-idx="${idx}" onclick="toggle(${idx})">
               ${grip}
-              <div class="check" onclick="toggle(${idx})"><span class="check-mark">✓</span></div>
+              <div class="check"><span class="check-mark">✓</span></div>
               <span class="task-text">${escHtml(task)}</span>
-              <button class="del" onclick="removeTask(${idx})">✕</button>
+              <button class="del" onclick="event.stopPropagation(); removeTask(${idx})">✕</button>
             </div>`;
           });
         }
