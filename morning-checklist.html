@@ -196,7 +196,6 @@
       border-radius: 50%;
       border: 2px solid var(--accent);
       flex-shrink: 0;
-      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -261,6 +260,32 @@
       padding: 10px 16px;
       padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
       border-top: 1px solid var(--sep);
+    }
+
+    .group-toggle {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .gtog {
+      flex: 1;
+      padding: 7px;
+      border-radius: 9px;
+      border: 1px solid var(--sep);
+      background: none;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .gtog.active {
+      background: var(--surface-hi);
+      color: var(--text);
+      border-color: var(--accent);
     }
 
     .add-inner {
@@ -334,6 +359,10 @@
   </div>
 
   <div class="add-wrap">
+    <div class="group-toggle">
+      <button class="gtog active" id="togMorning" onclick="setAddGroup(null)">Morning</button>
+      <button class="gtog" id="togPack" onclick="setAddGroup('pack')">Pack</button>
+    </div>
     <div class="add-inner">
       <input id="newTask" type="text" placeholder="Add a task…" autocomplete="off"
              onkeydown="if(event.key==='Enter') addTask()" />
@@ -349,10 +378,19 @@
 
   <script>
     const DEFAULT_TASKS = [
-      'Check emails',
-      "Review today's calendar",
-      'Check team messages',
-      'Review priority tasks',
+      { text: 'Water',                    group: null },
+      { text: 'Coffee / reading time',    group: null },
+      { text: 'Lucy?',                    group: null },
+      { text: 'Breakfast — oats / burrito', group: null },
+      { text: 'Dishwasher / minor tasks', group: null },
+      { text: 'Teeth / deo / gel',        group: null },
+      { text: 'Meds / watch',             group: null },
+      { text: 'Airpods case',             group: 'pack' },
+      { text: 'Lunch',                    group: 'pack' },
+      { text: 'Shirt',                    group: 'pack' },
+      { text: 'Pants / belt',             group: 'pack' },
+      { text: 'Shoes (work)',             group: 'pack' },
+      { text: 'Work jacket',              group: 'pack' },
     ];
 
     const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -360,11 +398,24 @@
     let tasks = JSON.parse(localStorage.getItem('morning_tasks') || JSON.stringify(DEFAULT_TASKS));
     let state = JSON.parse(localStorage.getItem('morning_state') || '{}');
 
+    // Migrate old string format
+    if (tasks.length > 0 && typeof tasks[0] === 'string') {
+      tasks = tasks.map(t => ({ text: t, group: null }));
+    }
+
     if (state.date !== todayStr()) {
       state = { date: todayStr(), done: new Array(tasks.length).fill(false) };
     }
     while (state.done.length < tasks.length) state.done.push(false);
     state.done = state.done.slice(0, tasks.length);
+
+    let addGroup = null;
+
+    function setAddGroup(g) {
+      addGroup = g;
+      document.getElementById('togMorning').classList.toggle('active', g === null);
+      document.getElementById('togPack').classList.toggle('active', g === 'pack');
+    }
 
     function save() {
       localStorage.setItem('morning_tasks', JSON.stringify(tasks));
@@ -379,7 +430,7 @@
       const input = document.getElementById('newTask');
       const text = input.value.trim();
       if (!text) return;
-      tasks.push(text);
+      tasks.push({ text, group: addGroup });
       state.done.push(false);
       input.value = '';
       save(); render();
@@ -406,8 +457,12 @@
       document.getElementById('progFill').style.width = total ? `${(doneCount / total) * 100}%` : '0%';
       document.getElementById('banner').style.display = (total > 0 && doneCount === total) ? 'block' : 'none';
 
-      const undone = tasks.map((t, i) => [t, i]).filter(([, i]) => !state.done[i]);
-      const done   = tasks.map((t, i) => [t, i]).filter(([, i]) =>  state.done[i]);
+      const all     = tasks.map((t, i) => ({ t, i }));
+      const undone  = all.filter(({ i }) => !state.done[i]);
+      const done    = all.filter(({ i }) =>  state.done[i]);
+
+      const morning = undone.filter(({ t }) => !t.group);
+      const pack    = undone.filter(({ t }) => t.group === 'pack');
 
       const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
 
@@ -415,29 +470,37 @@
       if (!tasks.length) {
         html = '<div class="empty-msg">No tasks yet — add one below</div>';
       } else {
-        undone.forEach(([task, idx]) => {
-          html += `<div class="task" data-idx="${idx}">
-            ${grip}
-            <div class="check"><span class="check-mark">✓</span></div>
-            <span class="task-text">${escHtml(task)}</span>
-            <button class="del" onclick="event.stopPropagation(); removeTask(${idx})">✕</button>
-          </div>`;
+        morning.forEach(({ t, i }) => {
+          html += taskHtml(t, i, grip);
         });
+
+        if (pack.length) {
+          html += `<div class="section-label">Pack</div>`;
+          pack.forEach(({ t, i }) => {
+            html += taskHtml(t, i, grip);
+          });
+        }
+
         if (done.length) {
           html += `<div class="section-label">Completed</div>`;
-          done.forEach(([task, idx]) => {
-            html += `<div class="task is-done" data-idx="${idx}">
-              ${grip}
-              <div class="check"><span class="check-mark">✓</span></div>
-              <span class="task-text">${escHtml(task)}</span>
-              <button class="del" onclick="event.stopPropagation(); removeTask(${idx})">✕</button>
-            </div>`;
+          done.forEach(({ t, i }) => {
+            html += taskHtml(t, i, grip, true);
           });
         }
       }
 
       document.getElementById('taskList').innerHTML = html;
       initDrag();
+    }
+
+    function taskHtml(t, i, grip, isDone = false) {
+      const g = t.group || 'morning';
+      return `<div class="task${isDone ? ' is-done' : ''}" data-idx="${i}" data-group="${g}">
+        ${grip}
+        <div class="check"><span class="check-mark">✓</span></div>
+        <span class="task-text">${escHtml(t.text)}</span>
+        <button class="del" onclick="event.stopPropagation(); removeTask(${i})">✕</button>
+      </div>`;
     }
 
     // ── Touch drag-to-reorder + tap-to-toggle ─────────────────────────────
@@ -452,24 +515,21 @@
       document.querySelectorAll('.task').forEach(task => {
         const idx = parseInt(task.dataset.idx);
 
-        // Record touch start (for movement threshold check)
         task.addEventListener('touchstart', e => {
           if (drag || e.target.closest('.grip') || e.target.closest('.del')) return;
           tapTrack = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         }, { passive: true });
 
-        // Toggle on tap — fires instantly, no iOS double-tap delay
         task.addEventListener('touchend', e => {
           if (!tapTrack || drag) { tapTrack = null; return; }
           const dx = Math.abs(e.changedTouches[0].clientX - tapTrack.x);
           const dy = Math.abs(e.changedTouches[0].clientY - tapTrack.y);
           tapTrack = null;
-          if (dx > 8 || dy > 8) return; // was a scroll, not a tap
-          e.preventDefault(); // suppress the ghost click that follows
+          if (dx > 8 || dy > 8) return;
+          e.preventDefault();
           toggle(idx);
         });
 
-        // Desktop mouse click (touch devices never reach here due to preventDefault above)
         task.addEventListener('click', e => {
           if (e.target.closest('.grip') || e.target.closest('.del')) return;
           toggle(idx);
@@ -483,8 +543,9 @@
       drag = {
         el,
         fromIdx: parseInt(el.dataset.idx),
+        group: el.dataset.group,
         startY: e.touches[0].clientY,
-        dropIdx: null,   // task index to insert before; null = end of undone
+        dropIdx: null,
       };
       el.classList.add('is-ghost');
     }
@@ -496,12 +557,14 @@
       const curY = e.touches[0].clientY;
       drag.el.style.transform = `translateY(${curY - drag.startY}px)`;
 
-      // Determine drop target among undone items
-      const undoneEls = [...document.querySelectorAll('.task:not(.is-done):not(.is-ghost)')];
-      undoneEls.forEach(el => el.classList.remove('drop-above'));
+      // Only allow drop within same group
+      const peers = [...document.querySelectorAll(
+        `.task[data-group="${drag.group}"]:not(.is-done):not(.is-ghost)`
+      )];
+      peers.forEach(el => el.classList.remove('drop-above'));
 
       drag.dropIdx = null;
-      for (const el of undoneEls) {
+      for (const el of peers) {
         const r = el.getBoundingClientRect();
         if (curY < r.top + r.height / 2) {
           el.classList.add('drop-above');
@@ -520,20 +583,24 @@
       el.classList.remove('is-ghost');
       document.querySelectorAll('.drop-above').forEach(el => el.classList.remove('drop-above'));
 
-      // Perform reorder
-      const [task] = tasks.splice(fromIdx, 1);
-      const [done] = state.done.splice(fromIdx, 1);
+      const [taskItem] = tasks.splice(fromIdx, 1);
+      const [doneItem] = state.done.splice(fromIdx, 1);
 
       if (dropIdx === null) {
-        // Insert after last undone item
-        const lastUndone = state.done.reduce((last, d, i) => d ? last : i, -1);
-        const pos = lastUndone === -1 ? tasks.length : lastUndone + 1;
-        tasks.splice(pos, 0, task);
-        state.done.splice(pos, 0, done);
+        // Insert after the last undone item in the same group
+        let insertPos = tasks.length;
+        for (let i = tasks.length - 1; i >= 0; i--) {
+          if (!state.done[i] && (tasks[i].group || 'morning') === (taskItem.group || 'morning')) {
+            insertPos = i + 1;
+            break;
+          }
+        }
+        tasks.splice(insertPos, 0, taskItem);
+        state.done.splice(insertPos, 0, doneItem);
       } else {
         const adjusted = dropIdx > fromIdx ? dropIdx - 1 : dropIdx;
-        tasks.splice(adjusted, 0, task);
-        state.done.splice(adjusted, 0, done);
+        tasks.splice(adjusted, 0, taskItem);
+        state.done.splice(adjusted, 0, doneItem);
       }
 
       save();
