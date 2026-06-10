@@ -409,14 +409,14 @@
       const undone = tasks.map((t, i) => [t, i]).filter(([, i]) => !state.done[i]);
       const done   = tasks.map((t, i) => [t, i]).filter(([, i]) =>  state.done[i]);
 
-      const grip = `<span class="grip" onclick="event.stopPropagation()"><span></span><span></span><span></span></span>`;
+      const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
 
       let html = '';
       if (!tasks.length) {
         html = '<div class="empty-msg">No tasks yet — add one below</div>';
       } else {
         undone.forEach(([task, idx]) => {
-          html += `<div class="task" data-idx="${idx}" onclick="toggle(${idx})">
+          html += `<div class="task" data-idx="${idx}">
             ${grip}
             <div class="check"><span class="check-mark">✓</span></div>
             <span class="task-text">${escHtml(task)}</span>
@@ -426,7 +426,7 @@
         if (done.length) {
           html += `<div class="section-label">Completed</div>`;
           done.forEach(([task, idx]) => {
-            html += `<div class="task is-done" data-idx="${idx}" onclick="toggle(${idx})">
+            html += `<div class="task is-done" data-idx="${idx}">
               ${grip}
               <div class="check"><span class="check-mark">✓</span></div>
               <span class="task-text">${escHtml(task)}</span>
