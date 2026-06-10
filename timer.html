@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interval Timer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #011B50;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px;
+      color: #FFFFFF;
+    }
+
+    .back { align-self: flex-start; color: #B9C930; text-decoration: none; font-size: 0.9rem; margin-bottom: 20px; }
+
+    h1 { font-size: 1.6rem; font-weight: 700; }
+    .divider { width: 50px; height: 3px; background: #B9C930; margin: 10px 0 28px; border-radius: 2px; }
+
+    .config {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 360px;
+      margin-bottom: 24px;
+      border-left: 5px solid #B9C930;
+    }
+
+    .config label {
+      display: block;
+      color: #011B50;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      margin-top: 14px;
+    }
+    .config label:first-child { margin-top: 0; }
+
+    .config input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #D3D3D3;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #222222;
+    }
+
+    .display {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .phase-label {
+      font-size: 0.9rem;
+      color: #B9C930;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      min-height: 1.2em;
+    }
+
+    .clock {
+      font-size: 5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin: 8px 0;
+    }
+
+    .round-info {
+      color: #D3D3D3;
+      font-size: 0.9rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    button {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:active { opacity: 0.75; }
+
+    #btnStart { background: #B9C930; color: #011B50; }
+    #btnReset { background: #FFFFFF; color: #011B50; }
+
+    .done-msg {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: #B9C930;
+      font-weight: 700;
+      min-height: 1.5em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <a class="back" href="index.html">← Home</a>
+  <h1>Interval Timer</h1>
+  <div class="divider"></div>
+
+  <div class="config">
+    <label>Work (seconds)</label>
+    <input type="number" id="workSec" value="40" min="1" />
+    <label>Rest (seconds)</label>
+    <input type="number" id="restSec" value="20" min="1" />
+    <label>Rounds</label>
+    <input type="number" id="rounds" value="5" min="1" />
+  </div>
+
+  <div class="display">
+    <div class="phase-label" id="phaseLabel">Ready</div>
+    <div class="clock" id="clock">00:40</div>
+    <div class="round-info" id="roundInfo">Round 1 of 5</div>
+  </div>
+
+  <div class="buttons">
+    <button id="btnStart" onclick="toggleStart()">Start</button>
+    <button id="btnReset" onclick="reset()">Reset</button>
+  </div>
+
+  <div class="done-msg" id="doneMsg"></div>
+
+  <script>
+    let timer = null;
+    let running = false;
+    let phase = 'work';
+    let remaining = 0;
+    let currentRound = 1;
+    let totalRounds = 5;
+
+    const clock     = document.getElementById('clock');
+    const phaseLabel = document.getElementById('phaseLabel');
+    const roundInfo = document.getElementById('roundInfo');
+    const btnStart  = document.getElementById('btnStart');
+    const doneMsg   = document.getElementById('doneMsg');
+
+    function fmt(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    }
+
+    function updateDisplay() {
+      clock.textContent = fmt(remaining);
+      roundInfo.textContent = `Round ${currentRound} of ${totalRounds}`;
+      phaseLabel.textContent = phase === 'work' ? 'Work' : 'Rest';
+      phaseLabel.style.color = phase === 'work' ? '#B9C930' : '#D3D3D3';
+    }
+
+    function beep(type) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = type === 'start' ? 880 : type === 'switch' ? 660 : 440;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
+    }
+
+    function toggleStart() {
+      if (running) {
+        clearInterval(timer);
+        running = false;
+        btnStart.textContent = 'Resume';
+      } else {
+        if (!timer && remaining === 0) init();
+        running = true;
+        btnStart.textContent = 'Pause';
+        beep('start');
+        timer = setInterval(tick, 1000);
+      }
+    }
+
+    function init() {
+      totalRounds = parseInt(document.getElementById('rounds').value) || 5;
+      currentRound = 1;
+      phase = 'work';
+      remaining = parseInt(document.getElementById('workSec').value) || 40;
+      doneMsg.textContent = '';
+      updateDisplay();
+    }
+
+    function tick() {
+      remaining--;
+      if (remaining <= 0) {
+        if (phase === 'work') {
+          phase = 'rest';
+          remaining = parseInt(document.getElementById('restSec').value) || 20;
+          beep('switch');
+        } else {
+          if (currentRound >= totalRounds) {
+            clearInterval(timer); running = false; timer = null;
+            clock.textContent = '00:00';
+            phaseLabel.textContent = 'Done!';
+            doneMsg.textContent = `Workout complete — ${totalRounds} rounds finished!`;
+            btnStart.textContent = 'Start';
+            beep('done');
+            return;
+          }
+          currentRound++;
+          phase = 'work';
+          remaining = parseInt(document.getElementById('workSec').value) || 40;
+          beep('start');
+        }
+      }
+      updateDisplay();
+    }
+
+    function reset() {
+      clearInterval(timer); running = false; timer = null;
+      btnStart.textContent = 'Start';
+      doneMsg.textContent = '';
+      phase = 'work';
+      remaining = parseInt(document.getElementById('workSec').value) || 40;
+      currentRound = 1;
+      totalRounds = parseInt(document.getElementById('rounds').value) || 5;
+      updateDisplay();
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
