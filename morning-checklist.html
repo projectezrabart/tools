@@ -33,7 +33,6 @@
       overflow: hidden;
     }
 
-    /* ── Header ── */
     .header {
       padding: 52px 24px 10px;
       flex-shrink: 0;
@@ -66,27 +65,13 @@
       font-family: inherit;
       padding: 0;
     }
-
     .reset-btn:active { opacity: 0.6; }
 
-    h1 {
-      font-size: 2.4rem;
-      font-weight: 700;
-      letter-spacing: -0.7px;
-      line-height: 1;
-    }
+    h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.7px; line-height: 1; }
 
-    .date-sub {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
+    .date-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 6px; }
 
-    /* ── Progress ── */
-    .prog-wrap {
-      padding: 18px 24px 10px;
-      flex-shrink: 0;
-    }
+    .prog-wrap { padding: 18px 24px 10px; flex-shrink: 0; }
 
     .prog-track {
       height: 3px;
@@ -103,12 +88,8 @@
       transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .prog-label {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
+    .prog-label { font-size: 0.78rem; color: var(--text-muted); }
 
-    /* ── All-done banner ── */
     .banner {
       margin: 0 16px 8px;
       padding: 13px 18px;
@@ -121,12 +102,11 @@
       flex-shrink: 0;
     }
 
-    /* ── Scrollable task list ── */
     .list-scroll {
       flex: 1;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      padding: 4px 16px 8px;
+      padding: 0 16px 8px;
     }
 
     .section-label {
@@ -135,10 +115,11 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: var(--text-muted);
-      padding: 16px 6px 6px;
+      padding: 20px 6px 8px;
     }
 
-    /* Task item */
+    .section-label.first { padding-top: 8px; }
+
     .task {
       position: relative;
       display: flex;
@@ -167,7 +148,6 @@
       border-radius: 1px;
     }
 
-    /* Grip handle */
     .grip {
       flex-shrink: 0;
       display: flex;
@@ -179,17 +159,10 @@
       opacity: 0.35;
     }
 
-    .grip span {
-      display: block;
-      width: 14px;
-      height: 1.5px;
-      background: var(--text-muted);
-      border-radius: 1px;
-    }
+    .grip span { display: block; width: 14px; height: 1.5px; background: var(--text-muted); border-radius: 1px; }
 
     .task.is-done .grip { visibility: hidden; }
 
-    /* Checkbox */
     .check {
       width: 26px;
       height: 26px;
@@ -202,35 +175,14 @@
       transition: background 0.18s, border-color 0.18s;
     }
 
-    .task.is-done .check {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
+    .task.is-done .check { background: var(--accent); border-color: var(--accent); }
 
-    .check-mark {
-      opacity: 0;
-      font-size: 0.75rem;
-      color: white;
-      font-weight: 800;
-      transition: opacity 0.15s;
-    }
-
+    .check-mark { opacity: 0; font-size: 0.75rem; color: white; font-weight: 800; transition: opacity 0.15s; }
     .task.is-done .check-mark { opacity: 1; }
 
-    /* Task text */
-    .task-text {
-      flex: 1;
-      font-size: 1rem;
-      font-weight: 450;
-      color: var(--text);
-    }
+    .task-text { flex: 1; font-size: 1rem; font-weight: 450; color: var(--text); }
+    .task.is-done .task-text { text-decoration: line-through; color: var(--text-done); }
 
-    .task.is-done .task-text {
-      text-decoration: line-through;
-      color: var(--text-done);
-    }
-
-    /* Delete button */
     .del {
       background: none;
       border: none;
@@ -243,18 +195,10 @@
       flex-shrink: 0;
       border-radius: 6px;
     }
+    .task:hover .del, .task:active .del { opacity: 1; }
 
-    .task:hover .del,
-    .task:active .del { opacity: 1; }
+    .empty-msg { text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 48px 0; }
 
-    .empty-msg {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      padding: 48px 0;
-    }
-
-    /* ── Add task (pinned bottom) ── */
     .add-wrap {
       flex-shrink: 0;
       padding: 10px 16px;
@@ -262,11 +206,7 @@
       border-top: 1px solid var(--sep);
     }
 
-    .group-toggle {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
+    .group-toggle { display: flex; gap: 6px; margin-bottom: 8px; }
 
     .gtog {
       flex: 1;
@@ -281,12 +221,7 @@
       font-family: inherit;
       transition: all 0.15s;
     }
-
-    .gtog.active {
-      background: var(--surface-hi);
-      color: var(--text);
-      border-color: var(--accent);
-    }
+    .gtog.active { background: var(--surface-hi); color: var(--text); border-color: var(--accent); }
 
     .add-inner {
       display: flex;
@@ -308,7 +243,6 @@
       padding: 10px 0;
       font-family: inherit;
     }
-
     .add-inner input::placeholder { color: var(--text-muted); }
 
     .add-btn {
@@ -325,7 +259,6 @@
       flex-shrink: 0;
       transition: opacity 0.15s;
     }
-
     .add-btn:active { opacity: 0.7; }
   </style>
 </head>
@@ -360,7 +293,7 @@
 
   <div class="add-wrap">
     <div class="group-toggle">
-      <button class="gtog active" id="togMorning" onclick="setAddGroup(null)">Morning</button>
+      <button class="gtog active" id="togPrep" onclick="setAddGroup(null)">Prep</button>
       <button class="gtog" id="togPack" onclick="setAddGroup('pack')">Pack</button>
     </div>
     <div class="add-inner">
@@ -377,31 +310,30 @@
   </div>
 
   <script>
+    // v3 key — clears old data and starts fresh with the correct list
+    const TASKS_KEY = 'morning_tasks_v3';
+    const STATE_KEY = 'morning_state_v3';
+
     const DEFAULT_TASKS = [
-      { text: 'Water',                    group: null },
-      { text: 'Coffee / reading time',    group: null },
-      { text: 'Lucy?',                    group: null },
+      { text: 'Water',                      group: null },
+      { text: 'Coffee / reading time',      group: null },
+      { text: 'Lucy?',                      group: null },
       { text: 'Breakfast — oats / burrito', group: null },
-      { text: 'Dishwasher / minor tasks', group: null },
-      { text: 'Teeth / deo / gel',        group: null },
-      { text: 'Meds / watch',             group: null },
-      { text: 'Airpods case',             group: 'pack' },
-      { text: 'Lunch',                    group: 'pack' },
-      { text: 'Shirt',                    group: 'pack' },
-      { text: 'Pants / belt',             group: 'pack' },
-      { text: 'Shoes (work)',             group: 'pack' },
-      { text: 'Work jacket',              group: 'pack' },
+      { text: 'Dishwasher / minor tasks',   group: null },
+      { text: 'Teeth / deo / gel',          group: null },
+      { text: 'Meds / watch',               group: null },
+      { text: 'Airpods case',               group: 'pack' },
+      { text: 'Lunch',                      group: 'pack' },
+      { text: 'Shirt',                      group: 'pack' },
+      { text: 'Pants / belt',               group: 'pack' },
+      { text: 'Shoes (work)',               group: 'pack' },
+      { text: 'Work jacket',                group: 'pack' },
     ];
 
     const todayStr = () => new Date().toISOString().slice(0, 10);
 
-    let tasks = JSON.parse(localStorage.getItem('morning_tasks') || JSON.stringify(DEFAULT_TASKS));
-    let state = JSON.parse(localStorage.getItem('morning_state') || '{}');
-
-    // Migrate old string format
-    if (tasks.length > 0 && typeof tasks[0] === 'string') {
-      tasks = tasks.map(t => ({ text: t, group: null }));
-    }
+    let tasks = JSON.parse(localStorage.getItem(TASKS_KEY) || JSON.stringify(DEFAULT_TASKS));
+    let state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
 
     if (state.date !== todayStr()) {
       state = { date: todayStr(), done: new Array(tasks.length).fill(false) };
@@ -413,13 +345,13 @@
 
     function setAddGroup(g) {
       addGroup = g;
-      document.getElementById('togMorning').classList.toggle('active', g === null);
+      document.getElementById('togPrep').classList.toggle('active', g === null);
       document.getElementById('togPack').classList.toggle('active', g === 'pack');
     }
 
     function save() {
-      localStorage.setItem('morning_tasks', JSON.stringify(tasks));
-      localStorage.setItem('morning_state', JSON.stringify(state));
+      localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+      localStorage.setItem(STATE_KEY, JSON.stringify(state));
     }
 
     function toggle(idx) { state.done[idx] = !state.done[idx]; save(); render(); }
@@ -446,6 +378,16 @@
       return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    function taskHtml(t, i, isDone) {
+      const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
+      return `<div class="task${isDone ? ' is-done' : ''}" data-idx="${i}" data-group="${t.group || 'prep'}">
+        ${grip}
+        <div class="check"><span class="check-mark">✓</span></div>
+        <span class="task-text">${escHtml(t.text)}</span>
+        <button class="del" onclick="event.stopPropagation(); removeTask(${i})">✕</button>
+      </div>`;
+    }
+
     function render() {
       document.getElementById('dateSub').textContent = new Date().toLocaleDateString('en-NZ', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -455,52 +397,45 @@
       const total = tasks.length;
       document.getElementById('progLabel').textContent = `${doneCount} of ${total} done`;
       document.getElementById('progFill').style.width = total ? `${(doneCount / total) * 100}%` : '0%';
-      document.getElementById('banner').style.display = (total > 0 && doneCount === total) ? 'block' : 'none';
 
-      const all     = tasks.map((t, i) => ({ t, i }));
-      const undone  = all.filter(({ i }) => !state.done[i]);
-      const done    = all.filter(({ i }) =>  state.done[i]);
+      const prepItems = tasks.map((t, i) => ({ t, i })).filter(({ t }) => !t.group);
+      const packItems = tasks.map((t, i) => ({ t, i })).filter(({ t }) => t.group === 'pack');
 
-      const morning = undone.filter(({ t }) => !t.group);
-      const pack    = undone.filter(({ t }) => t.group === 'pack');
+      const prepAllDone = prepItems.length > 0 && prepItems.every(({ i }) => state.done[i]);
+      const packAllDone = packItems.length > 0 && packItems.every(({ i }) => state.done[i]);
+      const allDone = (prepItems.length === 0 || prepAllDone) && (packItems.length === 0 || packAllDone);
 
-      const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
+      document.getElementById('banner').style.display = (total > 0 && allDone) ? 'block' : 'none';
 
       let html = '';
-      if (!tasks.length) {
-        html = '<div class="empty-msg">No tasks yet — add one below</div>';
-      } else {
-        morning.forEach(({ t, i }) => {
-          html += taskHtml(t, i, grip);
-        });
+      let isFirst = true;
 
-        if (pack.length) {
-          html += `<div class="section-label">Pack</div>`;
-          pack.forEach(({ t, i }) => {
-            html += taskHtml(t, i, grip);
-          });
-        }
+      // Prep section — hidden when all prep tasks done
+      if (prepItems.length && !prepAllDone) {
+        html += `<div class="section-label${isFirst ? ' first' : ''}">Prep</div>`;
+        isFirst = false;
+        const undone = prepItems.filter(({ i }) => !state.done[i]);
+        const done   = prepItems.filter(({ i }) =>  state.done[i]);
+        undone.forEach(({ t, i }) => { html += taskHtml(t, i, false); });
+        done.forEach(({ t, i })   => { html += taskHtml(t, i, true);  });
+      }
 
-        if (done.length) {
-          html += `<div class="section-label">Completed</div>`;
-          done.forEach(({ t, i }) => {
-            html += taskHtml(t, i, grip, true);
-          });
-        }
+      // Pack section — hidden when all pack tasks done
+      if (packItems.length && !packAllDone) {
+        html += `<div class="section-label${isFirst ? ' first' : ''}">Pack</div>`;
+        isFirst = false;
+        const undone = packItems.filter(({ i }) => !state.done[i]);
+        const done   = packItems.filter(({ i }) =>  state.done[i]);
+        undone.forEach(({ t, i }) => { html += taskHtml(t, i, false); });
+        done.forEach(({ t, i })   => { html += taskHtml(t, i, true);  });
+      }
+
+      if (!html) {
+        html = total === 0 ? '<div class="empty-msg">No tasks yet — add one below</div>' : '';
       }
 
       document.getElementById('taskList').innerHTML = html;
       initDrag();
-    }
-
-    function taskHtml(t, i, grip, isDone = false) {
-      const g = t.group || 'morning';
-      return `<div class="task${isDone ? ' is-done' : ''}" data-idx="${i}" data-group="${g}">
-        ${grip}
-        <div class="check"><span class="check-mark">✓</span></div>
-        <span class="task-text">${escHtml(t.text)}</span>
-        <button class="del" onclick="event.stopPropagation(); removeTask(${i})">✕</button>
-      </div>`;
     }
 
     // ── Touch drag-to-reorder + tap-to-toggle ─────────────────────────────
@@ -557,12 +492,10 @@
       const curY = e.touches[0].clientY;
       drag.el.style.transform = `translateY(${curY - drag.startY}px)`;
 
-      // Only allow drop within same group
       const peers = [...document.querySelectorAll(
         `.task[data-group="${drag.group}"]:not(.is-done):not(.is-ghost)`
       )];
       peers.forEach(el => el.classList.remove('drop-above'));
-
       drag.dropIdx = null;
       for (const el of peers) {
         const r = el.getBoundingClientRect();
@@ -587,10 +520,9 @@
       const [doneItem] = state.done.splice(fromIdx, 1);
 
       if (dropIdx === null) {
-        // Insert after the last undone item in the same group
         let insertPos = tasks.length;
         for (let i = tasks.length - 1; i >= 0; i--) {
-          if (!state.done[i] && (tasks[i].group || 'morning') === (taskItem.group || 'morning')) {
+          if (!state.done[i] && (tasks[i].group || 'prep') === (taskItem.group || 'prep')) {
             insertPos = i + 1;
             break;
           }
