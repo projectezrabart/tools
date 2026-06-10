@@ -2,265 +2,354 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Morning Checklist</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg:           #1a1523;
+      --surface:      #261e33;
+      --surface-hi:   #312545;
+      --accent:       #a78bfa;
+      --accent-warm:  #d97757;
+      --text:         #f0ebf8;
+      --text-muted:   #8b7da8;
+      --text-done:    #4e4265;
+      --sep:          rgba(255,255,255,0.07);
+    }
+
+    html, body { height: 100%; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #011B50;
-      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 24px 20px;
-      color: #FFFFFF;
-    }
-
-    .back { align-self: flex-start; color: #B9C930; text-decoration: none; font-size: 0.9rem; margin-bottom: 20px; }
-
-    h1 { font-size: 1.6rem; font-weight: 700; }
-    .divider { width: 50px; height: 3px; background: #B9C930; margin: 10px 0 6px; border-radius: 2px; }
-
-    .date-label {
-      font-size: 0.85rem;
-      color: #B9C930;
-      margin-bottom: 24px;
-      letter-spacing: 0.02em;
-    }
-
-    .add-row {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      max-width: 420px;
-      margin-bottom: 16px;
-    }
-
-    .add-row input {
-      flex: 1;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: none;
-      font-size: 1rem;
-      color: #222;
-    }
-
-    .add-row button {
-      background: #B9C930;
-      color: #011B50;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-size: 1.3rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .progress-bar-wrap {
-      width: 100%;
-      max-width: 420px;
-      height: 6px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 3px;
-      margin-bottom: 16px;
+      max-width: 480px;
+      margin: 0 auto;
       overflow: hidden;
     }
 
-    .progress-bar {
-      height: 100%;
-      background: #B9C930;
-      border-radius: 3px;
-      transition: width 0.3s;
+    /* ── Header ── */
+    .header {
+      padding: 52px 24px 10px;
+      flex-shrink: 0;
     }
 
-    .meta {
-      width: 100%;
-      max-width: 420px;
-      display: flex;
-      justify-content: space-between;
+    .back {
+      display: inline-flex;
       align-items: center;
-      margin-bottom: 12px;
+      gap: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 1rem;
+      margin-bottom: 22px;
     }
 
-    .meta .progress {
-      font-size: 0.85rem;
-      color: #D3D3D3;
+    .back svg { width: 9px; height: 15px; }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.7px;
+      line-height: 1;
     }
 
-    .meta button {
-      background: none;
-      border: 1.5px solid #D3D3D3;
-      color: #D3D3D3;
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      cursor: pointer;
+    .date-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 6px;
     }
-    .meta button:active { opacity: 0.6; }
 
-    .list {
-      width: 100%;
-      max-width: 420px;
+    /* ── Progress ── */
+    .prog-wrap {
+      padding: 18px 24px 10px;
+      flex-shrink: 0;
+    }
+
+    .prog-track {
+      height: 3px;
+      background: var(--sep);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .prog-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .prog-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ── All-done banner ── */
+    .banner {
+      margin: 0 16px 8px;
+      padding: 13px 18px;
+      background: linear-gradient(135deg, #6d28d9, #a855f7);
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    /* ── Scrollable task list ── */
+    .list-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 4px 16px 8px;
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 16px 6px 6px;
+    }
+
+    /* Task item */
+    .task {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 12px;
+      border-radius: 14px;
+      margin-bottom: 4px;
+      background: var(--surface);
+      user-select: none;
+      -webkit-user-select: none;
+      transition: background 0.15s, opacity 0.2s;
+    }
+
+    .task.is-ghost { opacity: 0.25; }
+
+    .task.drop-above::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 12px;
+      right: 12px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    /* Grip handle */
+    .grip {
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 3px;
+      padding: 4px 3px;
+      cursor: grab;
+      touch-action: none;
+      opacity: 0.35;
     }
 
-    .item {
-      background: #FFFFFF;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border-left: 5px solid #B9C930;
-      transition: opacity 0.2s;
+    .grip span {
+      display: block;
+      width: 14px;
+      height: 1.5px;
+      background: var(--text-muted);
+      border-radius: 1px;
     }
 
-    .item.done {
-      border-left-color: #D3D3D3;
-      opacity: 0.6;
-    }
+    .task.is-done .grip { visibility: hidden; }
 
-    .item.done .label {
-      text-decoration: line-through;
-      color: #888;
-    }
-
-    .checkbox {
+    /* Checkbox */
+    .check {
       width: 26px;
       height: 26px;
       border-radius: 50%;
-      border: 2.5px solid #B9C930;
+      border: 2px solid var(--accent);
       flex-shrink: 0;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s;
+      transition: background 0.18s, border-color 0.18s;
     }
 
-    .item.done .checkbox {
-      background: #D3D3D3;
-      border-color: #D3D3D3;
+    .task.is-done .check {
+      background: var(--accent);
+      border-color: var(--accent);
     }
 
-    .item.done .checkbox::after {
-      content: '✓';
-      font-size: 0.9rem;
-      color: #FFFFFF;
-      font-weight: 700;
+    .check-mark {
+      opacity: 0;
+      font-size: 0.75rem;
+      color: white;
+      font-weight: 800;
+      transition: opacity 0.15s;
     }
 
-    .label {
+    .task.is-done .check-mark { opacity: 1; }
+
+    /* Task text */
+    .task-text {
       flex: 1;
       font-size: 1rem;
-      color: #222;
-      font-weight: 500;
+      font-weight: 450;
+      color: var(--text);
     }
 
-    .del-btn {
+    .task.is-done .task-text {
+      text-decoration: line-through;
+      color: var(--text-done);
+    }
+
+    /* Delete button */
+    .del {
       background: none;
       border: none;
-      color: #D3D3D3;
-      font-size: 1.1rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
       cursor: pointer;
-      padding: 4px;
-      line-height: 1;
+      padding: 5px 6px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+      border-radius: 6px;
     }
-    .del-btn:active { color: #e55; }
 
-    .empty {
+    .task:hover .del,
+    .task:active .del { opacity: 1; }
+
+    .empty-msg {
       text-align: center;
-      color: #D3D3D3;
+      color: var(--text-muted);
       font-size: 0.9rem;
-      padding: 32px 0;
+      padding: 48px 0;
     }
 
-    .complete-banner {
-      width: 100%;
-      max-width: 420px;
-      background: #B9C930;
-      color: #011B50;
-      border-radius: 10px;
-      padding: 14px 18px;
-      font-weight: 700;
+    /* ── Add task (pinned bottom) ── */
+    .add-wrap {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+      border-top: 1px solid var(--sep);
+    }
+
+    .add-inner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 4px 4px 4px 16px;
+      border: 1px solid var(--sep);
+    }
+
+    .add-inner input {
+      flex: 1;
+      background: none;
+      border: none;
       font-size: 1rem;
-      text-align: center;
-      margin-bottom: 12px;
-      display: none;
+      color: var(--text);
+      outline: none;
+      padding: 10px 0;
+      font-family: inherit;
     }
 
-    .reset-note {
-      margin-top: 28px;
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.35);
+    .add-inner input::placeholder { color: var(--text-muted); }
+
+    .add-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--accent-warm);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
     }
+
+    .add-btn:active { opacity: 0.7; }
   </style>
 </head>
 <body>
 
-  <a class="back" href="index.html">← Home</a>
-  <h1>Morning Checklist</h1>
-  <div class="divider"></div>
-  <div class="date-label" id="dateLabel"></div>
-
-  <div class="add-row">
-    <input type="text" id="newTask" placeholder="Add a task…" onkeydown="if(event.key==='Enter') addTask()" />
-    <button onclick="addTask()">+</button>
+  <div class="header">
+    <a class="back" href="index.html">
+      <svg viewBox="0 0 9 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="7.5,1 1.5,7.5 7.5,14"/>
+      </svg>
+      Home
+    </a>
+    <h1>Morning</h1>
+    <div class="date-sub" id="dateSub"></div>
   </div>
 
-  <div class="progress-bar-wrap">
-    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  <div class="prog-wrap">
+    <div class="prog-track">
+      <div class="prog-fill" id="progFill" style="width:0%"></div>
+    </div>
+    <div class="prog-label" id="progLabel">0 of 0 done</div>
   </div>
 
-  <div class="meta">
-    <span class="progress" id="progressText">0 of 0 done</span>
-    <button onclick="resetToday()">Reset today</button>
+  <div class="banner" id="banner">All done — have a great day ✦</div>
+
+  <div class="list-scroll">
+    <div id="taskList"></div>
   </div>
 
-  <div class="complete-banner" id="completeBanner">All done — great start to the day!</div>
-
-  <div class="list" id="list"></div>
-
-  <div class="reset-note">Resets automatically each day</div>
+  <div class="add-wrap">
+    <div class="add-inner">
+      <input id="newTask" type="text" placeholder="Add a task…" autocomplete="off"
+             onkeydown="if(event.key==='Enter') addTask()" />
+      <button class="add-btn" onclick="addTask()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="13" x2="8" y2="3"/>
+          <polyline points="3,8 8,3 13,8"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 
   <script>
     const DEFAULT_TASKS = [
       'Check emails',
-      'Review today\'s calendar',
+      "Review today's calendar",
       'Check team messages',
-      'Review priority tasks for the day',
+      'Review priority tasks',
     ];
 
-    function todayStr() {
-      return new Date().toISOString().slice(0, 10);
-    }
+    const todayStr = () => new Date().toISOString().slice(0, 10);
 
     let tasks = JSON.parse(localStorage.getItem('morning_tasks') || JSON.stringify(DEFAULT_TASKS));
     let state = JSON.parse(localStorage.getItem('morning_state') || '{}');
 
-    // Auto-reset if it's a new day
     if (state.date !== todayStr()) {
       state = { date: todayStr(), done: new Array(tasks.length).fill(false) };
-      saveFull();
     }
-
-    // Sync done array length with tasks length
     while (state.done.length < tasks.length) state.done.push(false);
     state.done = state.done.slice(0, tasks.length);
 
-    function saveFull() {
+    function save() {
       localStorage.setItem('morning_tasks', JSON.stringify(tasks));
       localStorage.setItem('morning_state', JSON.stringify(state));
     }
 
-    function toggle(idx) {
-      state.done[idx] = !state.done[idx];
-      saveFull(); render();
-    }
+    function toggle(idx) { state.done[idx] = !state.done[idx]; save(); render(); }
 
     function addTask() {
       const input = document.getElementById('newTask');
@@ -269,18 +358,13 @@
       tasks.push(text);
       state.done.push(false);
       input.value = '';
-      saveFull(); render();
+      save(); render();
     }
 
     function removeTask(idx) {
       tasks.splice(idx, 1);
       state.done.splice(idx, 1);
-      saveFull(); render();
-    }
-
-    function resetToday() {
-      state.done = new Array(tasks.length).fill(false);
-      saveFull(); render();
+      save(); render();
     }
 
     function escHtml(s) {
@@ -288,33 +372,121 @@
     }
 
     function render() {
-      const done = state.done.filter(Boolean).length;
-      const total = tasks.length;
-
-      document.getElementById('dateLabel').textContent = new Date().toLocaleDateString('en-NZ', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      document.getElementById('dateSub').textContent = new Date().toLocaleDateString('en-NZ', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
       });
 
-      document.getElementById('progressText').textContent = `${done} of ${total} done`;
-      document.getElementById('progressBar').style.width = total ? `${(done / total) * 100}%` : '0%';
+      const doneCount = state.done.filter(Boolean).length;
+      const total = tasks.length;
+      document.getElementById('progLabel').textContent = `${doneCount} of ${total} done`;
+      document.getElementById('progFill').style.width = total ? `${(doneCount / total) * 100}%` : '0%';
+      document.getElementById('banner').style.display = (total > 0 && doneCount === total) ? 'block' : 'none';
 
-      const banner = document.getElementById('completeBanner');
-      banner.style.display = (total > 0 && done === total) ? 'block' : 'none';
+      const undone = tasks.map((t, i) => [t, i]).filter(([, i]) => !state.done[i]);
+      const done   = tasks.map((t, i) => [t, i]).filter(([, i]) =>  state.done[i]);
 
-      const list = document.getElementById('list');
+      const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
+
+      let html = '';
       if (!tasks.length) {
-        list.innerHTML = '<div class="empty">No tasks yet — add one above</div>';
-        return;
+        html = '<div class="empty-msg">No tasks yet — add one below</div>';
+      } else {
+        undone.forEach(([task, idx]) => {
+          html += `<div class="task" data-idx="${idx}">
+            ${grip}
+            <div class="check" onclick="toggle(${idx})"><span class="check-mark">✓</span></div>
+            <span class="task-text">${escHtml(task)}</span>
+            <button class="del" onclick="removeTask(${idx})">✕</button>
+          </div>`;
+        });
+        if (done.length) {
+          html += `<div class="section-label">Completed</div>`;
+          done.forEach(([task, idx]) => {
+            html += `<div class="task is-done" data-idx="${idx}">
+              ${grip}
+              <div class="check" onclick="toggle(${idx})"><span class="check-mark">✓</span></div>
+              <span class="task-text">${escHtml(task)}</span>
+              <button class="del" onclick="removeTask(${idx})">✕</button>
+            </div>`;
+          });
+        }
       }
 
-      list.innerHTML = tasks.map((task, idx) => `
-        <div class="item ${state.done[idx] ? 'done' : ''}">
-          <div class="checkbox" onclick="toggle(${idx})"></div>
-          <span class="label">${escHtml(task)}</span>
-          <button class="del-btn" onclick="removeTask(${idx})">✕</button>
-        </div>
-      `).join('');
+      document.getElementById('taskList').innerHTML = html;
+      initDrag();
     }
+
+    // ── Touch drag-to-reorder ──────────────────────────────────────────────
+    let drag = null;
+
+    function initDrag() {
+      document.querySelectorAll('.task:not(.is-done) .grip').forEach(grip => {
+        grip.addEventListener('touchstart', onDragStart, { passive: false });
+      });
+    }
+
+    function onDragStart(e) {
+      e.preventDefault();
+      const el = e.currentTarget.closest('.task');
+      drag = {
+        el,
+        fromIdx: parseInt(el.dataset.idx),
+        startY: e.touches[0].clientY,
+        dropIdx: null,   // task index to insert before; null = end of undone
+      };
+      el.classList.add('is-ghost');
+    }
+
+    document.addEventListener('touchmove', e => {
+      if (!drag) return;
+      e.preventDefault();
+
+      const curY = e.touches[0].clientY;
+      drag.el.style.transform = `translateY(${curY - drag.startY}px)`;
+
+      // Determine drop target among undone items
+      const undoneEls = [...document.querySelectorAll('.task:not(.is-done):not(.is-ghost)')];
+      undoneEls.forEach(el => el.classList.remove('drop-above'));
+
+      drag.dropIdx = null;
+      for (const el of undoneEls) {
+        const r = el.getBoundingClientRect();
+        if (curY < r.top + r.height / 2) {
+          el.classList.add('drop-above');
+          drag.dropIdx = parseInt(el.dataset.idx);
+          break;
+        }
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+      if (!drag) return;
+      const { el, fromIdx, dropIdx } = drag;
+      drag = null;
+
+      el.style.transform = '';
+      el.classList.remove('is-ghost');
+      document.querySelectorAll('.drop-above').forEach(el => el.classList.remove('drop-above'));
+
+      // Perform reorder
+      const [task] = tasks.splice(fromIdx, 1);
+      const [done] = state.done.splice(fromIdx, 1);
+
+      if (dropIdx === null) {
+        // Insert after last undone item
+        const lastUndone = state.done.reduce((last, d, i) => d ? last : i, -1);
+        const pos = lastUndone === -1 ? tasks.length : lastUndone + 1;
+        tasks.splice(pos, 0, task);
+        state.done.splice(pos, 0, done);
+      } else {
+        const adjusted = dropIdx > fromIdx ? dropIdx - 1 : dropIdx;
+        tasks.splice(adjusted, 0, task);
+        state.done.splice(adjusted, 0, done);
+      }
+
+      save();
+      render();
+    });
 
     render();
   </script>
