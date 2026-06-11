@@ -737,6 +737,15 @@
     });
 
     render();
+    scheduleMidnightReset();
+
+    function scheduleMidnightReset() {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setDate(midnight.getDate() + 1);
+      midnight.setHours(0, 0, 0, 0);
+      setTimeout(() => { resetToday(); scheduleMidnightReset(); }, midnight - now);
+    }
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
