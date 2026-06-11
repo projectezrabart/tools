@@ -9,6 +9,8 @@ self-contained .html file linked from index.html.
 - **On every change to this file, bump `APP_VERSION` and set `APP_UPDATED`**
   (NZ local date/time) near the top of the `<script>` block. These render in
   the small footer under the add-task bar.
+- **Also bump the `CACHE` version in `sw.js`** (e.g. `morning-v2` → `morning-v3`)
+  on every deploy, or the service worker will serve stale cached files to users.
 - The "routine day" rolls over at **noon local time**, not midnight — tasks
   ticked the night before count toward the next morning. Keep this in mind
   for any date logic (`todayStr()` subtracts 12 hours).
