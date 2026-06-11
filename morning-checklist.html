@@ -384,6 +384,14 @@
     }
 
     .add-btn:active { opacity: 0.55; }
+
+    .version {
+      text-align: center;
+      font-size: 0.58rem;
+      color: var(--text-done);
+      letter-spacing: 0.05em;
+      padding-top: 7px;
+    }
   </style>
 </head>
 <body>
@@ -428,6 +436,7 @@
         </svg>
       </button>
     </div>
+    <div class="version" id="versionTag"></div>
   </div>
 
   <script>
@@ -447,10 +456,18 @@
       { text: 'Work jacket',                group: 'pack' },
     ];
 
+    const APP_VERSION = '1.1';
+    const APP_UPDATED = '11 Jun 2026, 8:55 pm';
+
     const TASKS_KEY = 'morning_tasks_v3';
     const STATE_KEY = 'morning_state_v3';
 
-    const todayStr = () => new Date().toISOString().slice(0, 10);
+    // The "routine day" rolls over at noon (local time), so tasks ticked
+    // the night before still count toward the next morning.
+    const todayStr = () => {
+      const d = new Date(Date.now() - 12 * 3600 * 1000);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
 
     let tasks = JSON.parse(localStorage.getItem(TASKS_KEY) || JSON.stringify(DEFAULT_TASKS));
     let state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
@@ -512,7 +529,7 @@
       lastToggledIdx = null;
     }
 
-    function resetToday() { state.done = new Array(tasks.length).fill(false); save(); render(); }
+    function resetToday() { state = { date: todayStr(), done: new Array(tasks.length).fill(false) }; save(); render(); }
 
     function addTask() {
       const input = document.getElementById('newTask');
@@ -796,15 +813,17 @@
       toggle(tt.idx);
     });
 
-    render();
-    scheduleMidnightReset();
+    document.getElementById('versionTag').textContent = `v${APP_VERSION} · updated ${APP_UPDATED}`;
 
-    function scheduleMidnightReset() {
+    render();
+    scheduleNoonReset();
+
+    function scheduleNoonReset() {
       const now = new Date();
-      const midnight = new Date(now);
-      midnight.setDate(midnight.getDate() + 1);
-      midnight.setHours(0, 0, 0, 0);
-      setTimeout(() => { resetToday(); scheduleMidnightReset(); }, midnight - now);
+      const next = new Date(now);
+      next.setHours(12, 0, 0, 0);
+      if (next <= now) next.setDate(next.getDate() + 1);
+      setTimeout(() => { resetToday(); scheduleNoonReset(); }, next - now);
     }
 
     if ('serviceWorker' in navigator) {
