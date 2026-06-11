@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Morning Checklist</title>
+  <title>Morning</title>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#1a1523" />
+  <meta name="theme-color" content="#F4F3EF" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Morning" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     :root {
-      --bg:           #1a1523;
-      --surface:      #261e33;
-      --surface-hi:   #312545;
-      --accent:       #a78bfa;
-      --accent-warm:  #d97757;
-      --text:         #f0ebf8;
-      --text-muted:   #8b7da8;
-      --text-done:    #4e4265;
-      --sep:          rgba(255,255,255,0.07);
+      --bg:         #F4F3EF;
+      --surface:    #FFFFFF;
+      --border:     #E6E4DF;
+      --sep:        #EDECEA;
+      --text:       #1C1B18;
+      --text-muted: #A09C95;
+      --text-done:  #C4C0B9;
+      --pencil:     #8C887F;
+      --danger:     #DC2626;
     }
 
     html, body { height: 100%; }
@@ -41,7 +41,7 @@
 
     /* ── Header ── */
     .header {
-      padding: max(14px, env(safe-area-inset-top, 14px)) 20px 4px;
+      padding: max(18px, env(safe-area-inset-top, 18px)) 22px 8px;
       flex-shrink: 0;
     }
 
@@ -49,81 +49,88 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 10px;
     }
 
     .back {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      color: var(--accent);
+      gap: 5px;
+      color: var(--text-muted);
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 0.83rem;
+      letter-spacing: 0.01em;
     }
 
-    .back svg { width: 9px; height: 15px; }
+    .back svg { width: 7px; height: 11px; }
 
     .reset-btn {
       background: none;
       border: none;
-      color: var(--accent);
-      font-size: 1rem;
+      color: var(--text-muted);
+      font-size: 0.78rem;
       cursor: pointer;
       font-family: inherit;
+      letter-spacing: 0.04em;
       padding: 0;
     }
 
-    .reset-btn:active { opacity: 0.6; }
+    .reset-btn:active { opacity: 0.4; }
 
     h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: -0.4px;
+      font-size: 1.9rem;
+      font-weight: 600;
+      letter-spacing: -0.6px;
       line-height: 1;
-      display: inline;
+      color: var(--text);
     }
 
     .date-sub {
-      font-size: 0.78rem;
+      font-size: 0.73rem;
       color: var(--text-muted);
-      margin-top: 2px;
+      margin-top: 3px;
+      letter-spacing: 0.01em;
     }
 
     /* ── Progress ── */
     .prog-wrap {
-      padding: 10px 20px 6px;
+      padding: 10px 22px 10px;
       flex-shrink: 0;
     }
 
     .prog-track {
-      height: 3px;
-      background: var(--sep);
-      border-radius: 2px;
+      height: 1px;
+      background: var(--border);
+      border-radius: 1px;
       overflow: hidden;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .prog-fill {
       height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
+      background: var(--pencil);
+      border-radius: 1px;
       transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .prog-label {
-      font-size: 0.78rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
+      letter-spacing: 0.03em;
     }
 
     /* ── All-done banner ── */
     .banner {
       margin: 0 16px 8px;
-      padding: 13px 18px;
-      background: linear-gradient(135deg, #6d28d9, #a855f7);
-      border-radius: 14px;
-      font-size: 0.95rem;
-      font-weight: 600;
+      padding: 12px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--text-muted);
       text-align: center;
+      letter-spacing: 0.01em;
       display: none;
       flex-shrink: 0;
     }
@@ -133,39 +140,51 @@
       flex: 1;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      padding: 4px 16px 8px;
+      padding: 0 16px 8px;
     }
 
     .section-label {
-      font-size: 0.68rem;
-      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.63rem;
+      font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.13em;
       color: var(--text-muted);
-      padding: 20px 6px 8px;
+      padding: 20px 2px 10px;
     }
-    .section-label.first { padding-top: 8px; }
+
+    .section-label.first { padding-top: 10px; }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
 
     /* ── Swipe-to-delete wrapper ── */
     .swipe-wrap {
       position: relative;
-      border-radius: 14px;
-      margin-bottom: 4px;
+      border-radius: 10px;
+      margin-bottom: 3px;
       overflow: hidden;
     }
 
     .swipe-delete {
       position: absolute;
       inset: 0;
-      background: #dc2626;
+      background: var(--danger);
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      padding-right: 24px;
-      gap: 7px;
+      padding-right: 22px;
+      gap: 6px;
       color: white;
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
       pointer-events: none;
     }
 
@@ -176,120 +195,123 @@
       align-items: center;
       gap: 10px;
       padding: 13px 12px;
-      border-radius: 14px;
+      border-radius: 10px;
       background: var(--surface);
+      border: 1px solid var(--border);
       user-select: none;
       -webkit-user-select: none;
-      transition: background 0.15s, opacity 0.2s;
+      transition: opacity 0.2s;
       cursor: pointer;
       will-change: transform;
     }
 
-    .task.is-ghost { opacity: 0.25; }
+    .task.is-done { border-color: var(--sep); }
+    .task.is-ghost { opacity: 0.18; }
 
     .task.drop-above::before {
       content: '';
       position: absolute;
-      top: -3px;
-      left: 12px;
-      right: 12px;
-      height: 2px;
-      background: var(--accent);
+      top: -3px; left: 8px; right: 8px;
+      height: 1.5px;
+      background: var(--pencil);
       border-radius: 1px;
     }
 
-    /* Grip handle */
+    /* Grip */
     .grip {
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 3.5px;
       padding: 4px 3px;
       cursor: grab;
       touch-action: none;
-      opacity: 0.35;
+      opacity: 0.22;
     }
 
     .grip span {
       display: block;
-      width: 14px;
-      height: 1.5px;
-      background: var(--text-muted);
-      border-radius: 1px;
+      width: 13px;
+      height: 1px;
+      background: var(--text);
+      border-radius: 0.5px;
     }
 
     .task.is-done .grip { visibility: hidden; }
 
     /* Checkbox */
     .check {
-      width: 26px;
-      height: 26px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      border: 2px solid var(--accent);
+      border: 1.5px solid var(--border);
       flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.18s, border-color 0.18s;
+      transition: background 0.2s, border-color 0.2s;
     }
 
     .task.is-done .check {
-      background: var(--accent);
-      border-color: var(--accent);
+      background: var(--pencil);
+      border-color: var(--pencil);
     }
 
-    .check-mark {
-      opacity: 0;
-      font-size: 0.75rem;
-      color: white;
-      font-weight: 800;
-      transition: opacity 0.15s;
-    }
+    .check-mark { display: none; }
 
-    .task.is-done .check-mark { opacity: 1; }
-
-    /* Task text */
+    /* Task text + animated strikethrough */
     .task-text {
       flex: 1;
-      font-size: 1rem;
-      font-weight: 450;
+      font-size: 0.94rem;
+      font-weight: 400;
       color: var(--text);
+      position: relative;
     }
 
-    .task.is-done .task-text {
-      text-decoration: line-through;
-      color: var(--text-done);
+    .task.is-done .task-text { color: var(--text-done); }
+
+    .task.is-done .task-text::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 1px;
+      background: var(--pencil);
+      transform: scaleX(1);
+      transform-origin: left center;
     }
 
-    /* Delete button (desktop hover) */
+    .task.just-done .task-text::after {
+      animation: scratch-through 0.2s ease-out forwards;
+    }
+
+    @keyframes scratch-through {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+
+    /* Delete button (desktop) */
     .del {
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 0.95rem;
+      font-size: 0.82rem;
       cursor: pointer;
-      padding: 5px 6px;
+      padding: 4px 6px;
       opacity: 0;
       transition: opacity 0.15s;
       flex-shrink: 0;
-      border-radius: 6px;
+      border-radius: 4px;
     }
 
     .task:hover .del,
     .task:active .del { opacity: 1; }
 
-    /* Inline edit state */
-    .task.editing {
-      background: var(--surface-hi);
-      border: 1px solid var(--accent);
-    }
+    /* Inline edit */
+    .task.editing { border-color: var(--pencil); }
 
     .edit-input {
       flex: 1;
       background: none;
       border: none;
-      font-size: 1rem;
-      font-weight: 450;
+      font-size: 0.94rem;
+      font-weight: 400;
       color: var(--text);
       outline: none;
       font-family: inherit;
@@ -300,16 +322,18 @@
     .empty-msg {
       text-align: center;
       color: var(--text-muted);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       padding: 48px 0;
+      letter-spacing: 0.01em;
     }
 
-    /* ── Add task (pinned bottom) ── */
+    /* ── Add task ── */
     .add-wrap {
       flex-shrink: 0;
       padding: 10px 16px;
       padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
-      border-top: 1px solid var(--sep);
+      border-top: 1px solid var(--border);
+      background: var(--bg);
     }
 
     .add-inner {
@@ -317,16 +341,16 @@
       align-items: center;
       gap: 10px;
       background: var(--surface);
-      border-radius: 14px;
-      padding: 4px 4px 4px 16px;
-      border: 1px solid var(--sep);
+      border-radius: 10px;
+      padding: 4px 4px 4px 14px;
+      border: 1px solid var(--border);
     }
 
     .add-inner input {
       flex: 1;
       background: none;
       border: none;
-      font-size: 1rem;
+      font-size: 0.94rem;
       color: var(--text);
       outline: none;
       padding: 10px 0;
@@ -336,12 +360,12 @@
     .add-inner input::placeholder { color: var(--text-muted); }
 
     .add-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: var(--accent-warm);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--text);
       border: none;
-      color: white;
+      color: var(--bg);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -350,7 +374,7 @@
       transition: opacity 0.15s;
     }
 
-    .add-btn:active { opacity: 0.7; }
+    .add-btn:active { opacity: 0.55; }
   </style>
 </head>
 <body>
@@ -358,8 +382,9 @@
   <div class="header">
     <div class="nav-row">
       <a class="back" href="index.html">
-        <svg viewBox="0 0 9 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="7.5,1 1.5,7.5 7.5,14"/>
+        <svg viewBox="0 0 7 11" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6,1 1,5.5 6,10"/>
         </svg>
         Home
       </a>
@@ -376,7 +401,7 @@
     <div class="prog-label" id="progLabel">0 of 0 done</div>
   </div>
 
-  <div class="banner" id="banner">All done — have a great day ✦</div>
+  <div class="banner" id="banner">All done — have a good day.</div>
 
   <div class="list-scroll">
     <div id="taskList"></div>
@@ -387,10 +412,10 @@
       <input id="newTask" type="text" placeholder="Add a task…" autocomplete="off"
              onkeydown="if(event.key==='Enter') addTask()" />
       <button class="add-btn" onclick="addTask()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-             stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="8" y1="13" x2="8" y2="3"/>
-          <polyline points="3,8 8,3 13,8"/>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+             stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="7" y1="12" x2="7" y2="2"/>
+          <line x1="2" y1="7" x2="12" y2="7"/>
         </svg>
       </button>
     </div>
@@ -436,10 +461,46 @@
       if (navigator.vibrate) navigator.vibrate(pattern);
     }
 
+    function playPencilScratch() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const sr = ctx.sampleRate;
+        const n = Math.ceil(sr * 0.13);
+        const buf = ctx.createBuffer(1, n, sr);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < n; i++) {
+          const t = i / sr;
+          const env = (1 - Math.exp(-t / 0.003)) * Math.exp(-t / 0.022);
+          d[i] = (Math.random() * 2 - 1) * env;
+        }
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 5500;
+        bp.Q.value = 0.7;
+        const g = ctx.createGain();
+        g.gain.value = 0.9;
+        src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+        src.start();
+        setTimeout(() => ctx.close(), 400);
+      } catch (e) {}
+    }
+
+    let lastToggledIdx = null;
+
     function toggle(idx) {
       state.done[idx] = !state.done[idx];
-      haptic(state.done[idx] ? [30, 20, 60] : [20]);
+      if (state.done[idx]) {
+        haptic([30, 20, 60]);
+        playPencilScratch();
+        lastToggledIdx = idx;
+      } else {
+        haptic([20]);
+        lastToggledIdx = null;
+      }
       save(); render();
+      lastToggledIdx = null;
     }
 
     function resetToday() { state.done = new Array(tasks.length).fill(false); save(); render(); }
@@ -465,15 +526,14 @@
     }
 
     function escAttr(s) {
-      return escHtml(s).replace(/"/g, '&quot;');
+      return escHtml(s).replace(/"/g,'&quot;');
     }
 
     // ── Inline edit ───────────────────────────────────────────────────────
     let editingIdx = null;
 
     function startEdit(idx) {
-      editingIdx = idx;
-      render();
+      editingIdx = idx; render();
       const input = document.getElementById('edit-input');
       if (input) { input.focus(); input.select(); }
     }
@@ -483,8 +543,7 @@
       if (!input) return;
       const text = input.value.trim();
       if (text) tasks[idx].text = text;
-      editingIdx = null;
-      save(); render();
+      editingIdx = null; save(); render();
     }
 
     function cancelEdit() { editingIdx = null; render(); }
@@ -494,16 +553,17 @@
       if (e.key === 'Escape') cancelEdit();
     }
 
-    const TRASH_ICON = `<svg width="13" height="14" viewBox="0 0 24 24" fill="none" stroke="white"
+    const TRASH_ICON = `<svg width="12" height="13" viewBox="0 0 24 24" fill="none" stroke="white"
       stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="3 6 5 6 21 6"/>
       <path d="M19 6l-1 14H6L5 6"/>
-      <path d="M10 11v6"/><path d="M14 11v6"/>
-      <path d="M9 6V4h6v2"/>
+      <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
     </svg>`;
 
     function taskHtml(t, i, isDone) {
       const grip = `<span class="grip"><span></span><span></span><span></span></span>`;
+      const justDone = isDone && i === lastToggledIdx;
+
       if (editingIdx === i) {
         return `<div class="swipe-wrap"><div class="task editing" data-idx="${i}" data-group="${t.group || 'prep'}">
           ${grip}
@@ -511,11 +571,12 @@
                  onkeydown="handleEditKey(event,${i})" onblur="commitEdit(${i})" />
         </div></div>`;
       }
+      const cls = `task${isDone ? ' is-done' : ''}${justDone ? ' just-done' : ''}`;
       return `<div class="swipe-wrap">
         <div class="swipe-delete">${TRASH_ICON} Delete</div>
-        <div class="task${isDone ? ' is-done' : ''}" data-idx="${i}" data-group="${t.group || 'prep'}">
+        <div class="${cls}" data-idx="${i}" data-group="${t.group || 'prep'}">
           ${grip}
-          <div class="check"><span class="check-mark">✓</span></div>
+          <div class="check"><span class="check-mark"></span></div>
           <span class="task-text">${escHtml(t.text)}</span>
           <button class="del" onclick="event.stopPropagation();removeTask(${i})">✕</button>
         </div>
@@ -569,12 +630,12 @@
       initDrag();
     }
 
-    // ── Touch: drag-to-reorder + tap-to-toggle + long-press-to-edit + swipe-to-delete ─
-    let drag        = null;
-    let tapTrack    = null;
-    let swipeTrack  = null;
+    // ── Touch: drag + tap + long-press + swipe-delete ─────────────────────
+    let drag           = null;
+    let tapTrack       = null;
+    let swipeTrack     = null;
     let longPressTimer = null;
-    let isLongPress = false;
+    let isLongPress    = false;
 
     function initDrag() {
       document.querySelectorAll('.task:not(.is-done):not(.editing) .grip').forEach(grip => {
@@ -587,7 +648,6 @@
         task.addEventListener('touchstart', e => {
           if (drag || e.target.closest('.grip') || e.target.closest('.del') || e.target.closest('.edit-input')) return;
           tapTrack = { x: e.touches[0].clientX, y: e.touches[0].clientY, idx };
-
           if (longPressTimer) clearTimeout(longPressTimer);
           longPressTimer = setTimeout(() => {
             longPressTimer = null;
@@ -621,14 +681,12 @@
     document.addEventListener('touchmove', e => {
       if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 
-      // Swipe-to-delete detection
       if (tapTrack && !swipeTrack && !drag) {
         const touch = e.touches[0];
         const dx = touch.clientX - tapTrack.x;
         const dy = touch.clientY - tapTrack.y;
         const adx = Math.abs(dx);
         const ady = Math.abs(dy);
-
         if (adx > 15 && adx > ady * 1.5 && dx < 0) {
           const taskEl = document.querySelector(`.task[data-idx="${tapTrack.idx}"]`);
           if (taskEl && !taskEl.classList.contains('editing')) {
@@ -659,7 +717,6 @@
         `.task[data-group="${drag.group}"]:not(.is-done):not(.is-ghost)`
       )];
       peers.forEach(el => el.classList.remove('drop-above'));
-
       drag.dropIdx = null;
       for (const el of peers) {
         const r = el.getBoundingClientRect();
@@ -674,7 +731,6 @@
     document.addEventListener('touchend', e => {
       if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 
-      // Swipe commit or snap-back
       if (swipeTrack) {
         if (Math.abs(swipeTrack.currentX) > 100) {
           const idxToDelete = swipeTrack.idx;
@@ -691,11 +747,9 @@
         return;
       }
 
-      // Drag commit
       if (drag) {
         const { el, fromIdx, dropIdx } = drag;
         drag = null;
-
         el.style.transform = '';
         el.classList.remove('is-ghost');
         document.querySelectorAll('.drop-above').forEach(el => el.classList.remove('drop-above'));
@@ -707,8 +761,7 @@
           let insertPos = tasks.length;
           for (let i = tasks.length - 1; i >= 0; i--) {
             if (!state.done[i] && (tasks[i].group || 'prep') === (taskItem.group || 'prep')) {
-              insertPos = i + 1;
-              break;
+              insertPos = i + 1; break;
             }
           }
           tasks.splice(insertPos, 0, taskItem);
@@ -718,13 +771,9 @@
           tasks.splice(adjusted, 0, taskItem);
           state.done.splice(adjusted, 0, doneItem);
         }
-
-        save();
-        render();
-        return;
+        save(); render(); return;
       }
 
-      // Tap-to-toggle
       if (isLongPress) { isLongPress = false; tapTrack = null; return; }
       if (!tapTrack) return;
       const tt = tapTrack;
