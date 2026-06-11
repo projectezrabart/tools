@@ -206,15 +206,24 @@
     }
 
     .task.is-done { border-color: var(--sep); }
-    .task.is-ghost { opacity: 0.18; }
 
-    .task.drop-above::before {
-      content: '';
-      position: absolute;
-      top: -3px; left: 8px; right: 8px;
-      height: 1.5px;
-      background: var(--pencil);
-      border-radius: 1px;
+    /* Dragging: lift the whole wrap so the red delete layer moves with it */
+    .swipe-wrap.dragging {
+      z-index: 10;
+      overflow: visible;
+    }
+
+    .swipe-wrap.dragging .swipe-delete { display: none; }
+
+    .swipe-wrap.dragging .task {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+      border-color: var(--pencil);
+      transform: scale(1.02);
+    }
+
+    /* Drop indicator: line above the target row (box-shadow isn't clipped) */
+    .swipe-wrap.drop-above {
+      box-shadow: 0 -3px 0 0 var(--pencil);
     }
 
     /* Grip */
@@ -668,14 +677,16 @@
     function onDragStart(e) {
       e.preventDefault();
       const el = e.currentTarget.closest('.task');
+      const wrap = el.closest('.swipe-wrap');
       drag = {
         el,
+        wrap,
         fromIdx: parseInt(el.dataset.idx),
         group: el.dataset.group,
         startY: e.touches[0].clientY,
         dropIdx: null,
       };
-      el.classList.add('is-ghost');
+      wrap.classList.add('dragging');
     }
 
     document.addEventListener('touchmove', e => {
@@ -711,17 +722,17 @@
       e.preventDefault();
 
       const curY = e.touches[0].clientY;
-      drag.el.style.transform = `translateY(${curY - drag.startY}px)`;
+      drag.wrap.style.transform = `translateY(${curY - drag.startY}px)`;
 
       const peers = [...document.querySelectorAll(
-        `.task[data-group="${drag.group}"]:not(.is-done):not(.is-ghost)`
-      )];
-      peers.forEach(el => el.classList.remove('drop-above'));
+        `.task[data-group="${drag.group}"]:not(.is-done)`
+      )].filter(el => el !== drag.el);
+      document.querySelectorAll('.drop-above').forEach(el => el.classList.remove('drop-above'));
       drag.dropIdx = null;
       for (const el of peers) {
         const r = el.getBoundingClientRect();
         if (curY < r.top + r.height / 2) {
-          el.classList.add('drop-above');
+          el.closest('.swipe-wrap').classList.add('drop-above');
           drag.dropIdx = parseInt(el.dataset.idx);
           break;
         }
@@ -748,10 +759,10 @@
       }
 
       if (drag) {
-        const { el, fromIdx, dropIdx } = drag;
+        const { wrap, fromIdx, dropIdx } = drag;
         drag = null;
-        el.style.transform = '';
-        el.classList.remove('is-ghost');
+        wrap.style.transform = '';
+        wrap.classList.remove('dragging');
         document.querySelectorAll('.drop-above').forEach(el => el.classList.remove('drop-above'));
 
         const [taskItem] = tasks.splice(fromIdx, 1);
