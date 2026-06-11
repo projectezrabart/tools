@@ -1,0 +1,18 @@
+{
+  "name": "Morning Checklist",
+  "short_name": "Morning",
+  "description": "Daily morning routine tracker",
+  "start_url": "./morning-checklist.html",
+  "display": "standalone",
+  "background_color": "#1a1523",
+  "theme_color": "#1a1523",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
