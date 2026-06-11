@@ -1,4 +1,4 @@
-const CACHE = 'morning-v2';
+const CACHE = 'morning-v3';
 const URLS  = ['./morning-checklist.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {

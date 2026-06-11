@@ -186,6 +186,7 @@
       font-weight: 500;
       letter-spacing: 0.02em;
       pointer-events: none;
+      opacity: 0;
     }
 
     /* ── Task item ── */
@@ -456,8 +457,8 @@
       { text: 'Work jacket',                group: 'pack' },
     ];
 
-    const APP_VERSION = '1.1';
-    const APP_UPDATED = '11 Jun 2026, 8:55 pm';
+    const APP_VERSION = '1.2';
+    const APP_UPDATED = '11 Jun 2026, 9:10 pm';
 
     const TASKS_KEY = 'morning_tasks_v3';
     const STATE_KEY = 'morning_state_v3';
@@ -732,6 +733,11 @@
         swipeTrack.currentX = dx;
         swipeTrack.el.style.transition = 'none';
         swipeTrack.el.style.transform = `translateX(${dx}px)`;
+        if (!swipeTrack.bgShown) {
+          swipeTrack.bgShown = true;
+          const bg = swipeTrack.el.parentElement?.querySelector('.swipe-delete');
+          if (bg) bg.style.opacity = '1';
+        }
         return;
       }
 
@@ -770,6 +776,8 @@
         } else {
           swipeTrack.el.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)';
           swipeTrack.el.style.transform = 'translateX(0)';
+          const bg = swipeTrack.el.parentElement?.querySelector('.swipe-delete');
+          if (bg) bg.style.opacity = '0';
           swipeTrack = null;
         }
         return;
