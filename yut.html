@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Yut Nori</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg:         #F4F3EF;
+      --surface:    #FFFFFF;
+      --border:     #E6E4DF;
+      --text:       #1C1B18;
+      --text-muted: #A09C95;
+      --pencil:     #8C887F;
+      --flat-bg:    #FDFCF7;
+      --flat-bd:    #DDD8CF;
+      --wood:       #7A5230;
+      --wood-hi:    #9B6B3F;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 440px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      width: 100%;
+      padding: max(18px, env(safe-area-inset-top, 18px)) 22px 0;
+      flex-shrink: 0;
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.83rem;
+    }
+
+    .back svg { width: 7px; height: 11px; }
+
+    .clear-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      padding: 0;
+    }
+
+    .clear-btn:active { opacity: 0.4; }
+
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* ── Main area ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 0 22px;
+      gap: 28px;
+    }
+
+    /* ── Sticks ── */
+    .sticks-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+      transition: transform 0.22s ease-in, opacity 0.22s ease-in;
+    }
+
+    .stick {
+      width: 46px;
+      height: 128px;
+      border-radius: 23px;
+      flex-shrink: 0;
+    }
+
+    .stick.flat {
+      background: var(--flat-bg);
+      border: 1.5px solid var(--flat-bd);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .stick.curved {
+      background: linear-gradient(155deg, var(--wood-hi) 0%, var(--wood) 55%, #5A3A18 100%);
+      border: 1.5px solid #5A3A18;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18), inset -4px 0 10px rgba(0,0,0,0.2);
+    }
+
+    /* ── Result ── */
+    .result {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      min-height: 90px;
+      justify-content: center;
+    }
+
+    .result-name {
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .result-roman {
+      font-size: 1rem;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    .result-spaces {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .throw-again {
+      display: inline-block;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 2px;
+    }
+
+    /* ── History ── */
+    .history {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      justify-content: center;
+      min-height: 26px;
+    }
+
+    .hist-chip {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 9px;
+      white-space: nowrap;
+    }
+
+    .hist-chip.extra {
+      color: var(--text);
+      font-weight: 500;
+      border-color: var(--pencil);
+    }
+
+    /* ── Bottom ── */
+    .bottom {
+      width: 100%;
+      padding: 0 22px;
+      padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+      flex-shrink: 0;
+    }
+
+    .throw-btn {
+      width: 100%;
+      padding: 17px;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: opacity 0.15s;
+    }
+
+    .throw-btn:active { opacity: 0.55; }
+    .throw-btn:disabled { opacity: 0.35; }
+
+    .version {
+      text-align: center;
+      font-size: 0.58rem;
+      color: var(--text-done, #C4C0B9);
+      letter-spacing: 0.05em;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="nav-row">
+      <a class="back" href="index.html">
+        <svg viewBox="0 0 7 11" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6,1 1,5.5 6,10"/>
+        </svg>
+        Home
+      </a>
+      <button class="clear-btn" onclick="clearAll()">Clear</button>
+    </div>
+    <h1>Yut Nori</h1>
+    <div class="subtitle">윷놀이</div>
+  </div>
+
+  <div class="main">
+    <div class="sticks-row" id="sticks"></div>
+
+    <div class="result" id="result">
+      <div class="result-name" id="resultName">—</div>
+      <div class="result-roman" id="resultRoman"></div>
+      <div class="result-spaces" id="resultSpaces">Tap Throw to begin</div>
+    </div>
+
+    <div class="history" id="history"></div>
+  </div>
+
+  <div class="bottom">
+    <button class="throw-btn" id="throwBtn" onclick="throwYut()">Throw &nbsp;던지다</button>
+    <div class="version" id="ver"></div>
+  </div>
+
+  <script>
+    const APP_VERSION = '1.0';
+    const APP_UPDATED = '12 Jun 2026, 9:10 pm';
+
+    // flat = how many sticks land flat-side up
+    const OUTCOMES = [
+      { flat: 0, name: '모', roman: 'Mo',   spaces: 5, extra: true  },
+      { flat: 1, name: '도', roman: 'Do',   spaces: 1, extra: false },
+      { flat: 2, name: '개', roman: 'Gae',  spaces: 2, extra: false },
+      { flat: 3, name: '걸', roman: 'Geol', spaces: 3, extra: false },
+      { flat: 4, name: '윷', roman: 'Yut',  spaces: 4, extra: true  },
+    ];
+
+    let history = [];
+    let throwing = false;
+
+    function buildSticks(flatCount) {
+      const row = document.getElementById('sticks');
+      // Randomise which of the 4 positions are flat
+      const positions = Array(4).fill(false);
+      const idxs = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < flatCount; i++) positions[idxs[i]] = true;
+
+      row.innerHTML = '';
+      positions.forEach(isFlat => {
+        const el = document.createElement('div');
+        el.className = `stick ${isFlat ? 'flat' : 'curved'}`;
+        el.style.transform = `rotate(${(Math.random() - 0.5) * 9}deg)`;
+        row.appendChild(el);
+      });
+    }
+
+    function showResult(o) {
+      document.getElementById('resultName').textContent = o.name;
+      document.getElementById('resultRoman').textContent = o.roman;
+      document.getElementById('resultSpaces').textContent =
+        `Move ${o.spaces} space${o.spaces !== 1 ? 's' : ''}`;
+
+      const old = document.getElementById('throwAgainBadge');
+      if (old) old.remove();
+      if (o.extra) {
+        const b = document.createElement('div');
+        b.id = 'throwAgainBadge';
+        b.className = 'throw-again';
+        b.textContent = 'Throw again';
+        document.getElementById('result').appendChild(b);
+        if (navigator.vibrate) navigator.vibrate([20, 40, 60]);
+      }
+    }
+
+    function renderHistory() {
+      document.getElementById('history').innerHTML = history.map(o =>
+        `<span class="hist-chip${o.extra ? ' extra' : ''}">${o.name} +${o.spaces}</span>`
+      ).join('');
+    }
+
+    function throwYut() {
+      if (throwing) return;
+      throwing = true;
+      document.getElementById('throwBtn').disabled = true;
+
+      if (navigator.vibrate) navigator.vibrate([15, 25, 15, 25, 30]);
+
+      // Roll 4 sticks
+      let flat = 0;
+      for (let i = 0; i < 4; i++) if (Math.random() < 0.5) flat++;
+      const outcome = OUTCOMES.find(o => o.flat === flat);
+
+      // Animate: sticks fly up (scale + fade out)
+      const row = document.getElementById('sticks');
+      row.style.transition = 'transform 0.2s ease-in, opacity 0.2s ease-in';
+      row.style.transform = 'translateY(-18px) scale(0.82)';
+      row.style.opacity = '0';
+
+      setTimeout(() => {
+        // Land: build new state, spring back in
+        buildSticks(flat);
+        row.style.transition = 'none';
+        row.style.transform = 'translateY(-18px) scale(0.82)';
+        row.style.opacity = '0';
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          row.style.transition = 'transform 0.38s cubic-bezier(0.34,1.4,0.64,1), opacity 0.25s ease-out';
+          row.style.transform = '';
+          row.style.opacity = '';
+        }));
+
+        showResult(outcome);
+        history.unshift(outcome);
+        if (history.length > 7) history.pop();
+        renderHistory();
+
+        setTimeout(() => {
+          throwing = false;
+          document.getElementById('throwBtn').disabled = false;
+        }, 380);
+      }, 200);
+    }
+
+    function clearAll() {
+      history = [];
+      renderHistory();
+      document.getElementById('resultName').textContent = '—';
+      document.getElementById('resultRoman').textContent = '';
+      document.getElementById('resultSpaces').textContent = 'Tap Throw to begin';
+      const b = document.getElementById('throwAgainBadge');
+      if (b) b.remove();
+      buildSticks(2); // neutral starting state
+    }
+
+    buildSticks(2);
+    document.getElementById('ver').textContent = `v${APP_VERSION} · updated ${APP_UPDATED}`;
+  </script>
+
+</body>
+</html>
