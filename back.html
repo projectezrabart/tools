@@ -356,9 +356,9 @@
         <div class="phase-dot" style="background:#FF453A"></div>
         <div class="phase-info">
           <div class="phase-name">Supermans</div>
-          <div class="phase-desc">2 sets of 10 — 10s hold, 5s rest each rep</div>
+          <div class="phase-desc">7 reps — 10s hold, 5s rest each rep</div>
         </div>
-        <div class="phase-dur">5½ min</div>
+        <div class="phase-dur">1¾ min</div>
       </div>
       <div class="phase-row">
         <div class="phase-dot" style="background:#32ADE6"></div>
@@ -446,28 +446,21 @@
         ['Right Side', 'Second pass', G.NR],
       ].forEach(([ins, ctx, grad]) => add('Thread the Needle', ins, ctx, 10, grad));
 
-      // 3 + 5. Supermans — 2 sets of 10
-      for (let set = 1; set <= 2; set++) {
-        if (set === 2) {
-          add('Set 1 Complete', 'Rest', 'Set 2 begins when this ends', 30, G.REST);
-        }
-        for (let rep = 1; rep <= 10; rep++) {
-          const isLast = rep === 10;
-          add(
-            `Supermans — Set ${set}`,
-            'HOLD',
-            `Rep ${rep} of 10`,
-            10, G.HOLD
-          );
-          add(
-            `Supermans — Set ${set}`,
-            'GO DOWN',
-            isLast
-              ? (set === 1 ? '30s rest coming up' : 'Set 2 complete — great work')
-              : `Rep ${rep + 1} coming up`,
-            5, G.DOWN
-          );
-        }
+      // 3. Supermans — 1 set of 7
+      for (let rep = 1; rep <= 7; rep++) {
+        const isLast = rep === 7;
+        add(
+          'Supermans',
+          'HOLD',
+          `Rep ${rep} of 7`,
+          10, G.HOLD
+        );
+        add(
+          'Supermans',
+          'GO DOWN',
+          isLast ? 'Set complete — well done' : `Rep ${rep + 1} coming up`,
+          5, G.DOWN
+        );
       }
 
       // 6. Extended Cat Pose
