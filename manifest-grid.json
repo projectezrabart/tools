@@ -4,8 +4,8 @@
   "description": "Daily morning routine — grid layout, tap to complete",
   "start_url": "./morning-grid.html",
   "display": "standalone",
-  "background_color": "#011B50",
-  "theme_color": "#011B50",
+  "background_color": "#F4F3EF",
+  "theme_color": "#F4F3EF",
   "orientation": "portrait-primary",
   "icons": [
     {
