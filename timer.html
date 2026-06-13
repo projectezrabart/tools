@@ -20,9 +20,9 @@
 
     .hidden { display: none !important; }
 
-    /* ══════════════════════
+    /* ═══════════════════════════════════
        SETUP SCREEN
-    ══════════════════════ */
+    ═══════════════════════════════════ */
     #setup {
       background: #F5F5F7;
       height: 100dvh;
@@ -98,12 +98,8 @@
       transition: background 0.1s, color 0.1s, transform 0.1s;
     }
 
-    .pill.selected {
-      background: #1D1D1F;
-      color: #FFFFFF;
-    }
-
-    .pill:active { transform: scale(0.91); }
+    .pill.selected { background: #1D1D1F; color: #FFFFFF; }
+    .pill:active   { transform: scale(0.91); }
 
     .spacer { flex: 1; }
 
@@ -122,15 +118,57 @@
       user-select: none;
       transition: opacity 0.15s;
     }
-
     .start-btn:active { opacity: 0.55; }
 
-    /* ══════════════════════
+    /* ═══════════════════════════════════
        TIMER SCREEN
-    ══════════════════════ */
+    ═══════════════════════════════════ */
     #timer {
       position: fixed;
       inset: 0;
+      overflow: hidden;
+    }
+
+    /*
+      Layered structure (bottom → top):
+        #bg       — full-screen phase gradient, always visible
+        #overlay  — dark layer that shrinks UPWARD, revealing gradient from bottom
+        .t-content — text / buttons, always on top
+    */
+
+    #bg {
+      position: absolute;
+      inset: 0;
+      /* Work gradient default; JS swaps to REST_GRADIENT on rest phase */
+      background: linear-gradient(to top,
+        #0A84FF  0%,
+        #FF9F0A 62%,
+        #FF453A 100%);
+    }
+
+    /* Dark overlay anchored at the top; shrinks downward to reveal gradient */
+    #overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #0E0E11;
+      transform-origin: top center;
+      will-change: transform;
+    }
+
+    @keyframes reveal-up {
+      from { transform: scaleY(1); }
+      to   { transform: scaleY(0); }
+    }
+
+    #overlay.running {
+      animation: reveal-up linear forwards;
+    }
+
+    /* Content always above overlay */
+    .t-content {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -139,11 +177,8 @@
         max(52px, env(safe-area-inset-top, 52px))
         32px
         max(36px, env(safe-area-inset-bottom, 36px));
-      background: hsl(211, 100%, 48%);
-      transition: background 0.9s ease;
     }
 
-    /* Top */
     .t-top { text-align: center; }
 
     .interval-badge {
@@ -151,10 +186,9 @@
       font-weight: 600;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.5);
     }
 
-    /* Center */
     .t-mid {
       display: flex;
       flex-direction: column;
@@ -169,21 +203,22 @@
       letter-spacing: -6px;
       line-height: 1;
       font-variant-numeric: tabular-nums;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.4);
     }
 
     #phaseLabel {
       font-size: 1.9rem;
       font-weight: 500;
-      color: rgba(255,255,255,0.72);
+      color: rgba(255,255,255,0.8);
       letter-spacing: -0.3px;
+      text-shadow: 0 1px 12px rgba(0,0,0,0.3);
     }
 
-    /* Bottom */
     .t-bot {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 18px;
     }
 
     #elapsedLabel {
@@ -193,10 +228,10 @@
     }
 
     .stop-btn {
-      background: rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.14);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1.5px solid rgba(255,255,255,0.28);
+      border: 1.5px solid rgba(255,255,255,0.25);
       border-radius: 50px;
       color: #FFFFFF;
       font-family: inherit;
@@ -207,13 +242,12 @@
       user-select: none;
       transition: opacity 0.15s;
     }
-
     .stop-btn:active { opacity: 0.45; }
   </style>
 </head>
 <body>
 
-  <!-- Setup -->
+  <!-- ── Setup ── -->
   <div id="setup">
     <a class="back-link" href="index.html">
       <svg viewBox="0 0 7 11" fill="none" stroke="currentColor"
@@ -250,27 +284,41 @@
     <button class="start-btn" onclick="startTimer()">Start</button>
   </div>
 
-  <!-- Timer -->
+  <!-- ── Timer ── -->
   <div id="timer" class="hidden">
-    <div class="t-top">
-      <div class="interval-badge" id="intervalBadge">Interval 1</div>
-    </div>
-    <div class="t-mid">
-      <div id="countdown">0:40</div>
-      <div id="phaseLabel">Work</div>
-    </div>
-    <div class="t-bot">
-      <div id="elapsedLabel">0:00 elapsed</div>
-      <button class="stop-btn" onclick="stopTimer()">Stop</button>
+    <div id="bg"></div>
+    <div id="overlay"></div>
+    <div class="t-content">
+      <div class="t-top">
+        <div class="interval-badge" id="intervalBadge">Interval 1</div>
+      </div>
+      <div class="t-mid">
+        <div id="countdown">0:40</div>
+        <div id="phaseLabel">Work</div>
+      </div>
+      <div class="t-bot">
+        <div id="elapsedLabel">0:00 elapsed</div>
+        <button class="stop-btn" onclick="stopTimer()">Stop</button>
+      </div>
     </div>
   </div>
 
   <script>
+    const WORK_GRAD = 'linear-gradient(to top, #0A84FF 0%, #FF9F0A 62%, #FF453A 100%)';
+    const REST_GRAD = 'linear-gradient(to top, #30D158 0%, #32ADE6 100%)';
+
     let workDur = 40, restDur = 5;
     let phase, timeLeft, intervalNum, elapsedSecs;
-    let tickId = null, wakeLock = null;
+    let tickId = null, wakeLock = null, audioCtx = null;
 
-    // Wire up pill selectors
+    const bgEl      = document.getElementById('bg');
+    const overlayEl = document.getElementById('overlay');
+    const cdEl      = document.getElementById('countdown');
+    const phaseEl   = document.getElementById('phaseLabel');
+    const badgeEl   = document.getElementById('intervalBadge');
+    const elapsedEl = document.getElementById('elapsedLabel');
+
+    // ── Pill selectors ────────────────────────────────────────
     ['work', 'rest'].forEach(type => {
       document.querySelectorAll(`#${type}Pills .pill`).forEach(btn => {
         btn.addEventListener('click', () => {
@@ -282,69 +330,115 @@
       });
     });
 
+    // ── Helpers ───────────────────────────────────────────────
     function fmt(s) {
       return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     }
 
-    function lerp(a, b, t) { return a + (b - a) * t; }
+    // ── Meditation gong (Tibetan bowl synthesis) ──────────────
+    function playGong() {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const t  = audioCtx.currentTime;
+      const f0 = 196; // G3 — clear, resonant fundamental
 
-    function timerBg(ph, progress) {
-      if (ph === 'work') {
-        // Blue (211°) → amber (35°) → red (2°) as time runs out
-        const hue = progress < 0.65
-          ? lerp(211, 35, progress / 0.65)
-          : lerp(35, 2, (progress - 0.65) / 0.35);
-        const light = lerp(48, 54, progress);
-        return `hsl(${hue.toFixed(0)},100%,${light.toFixed(1)}%)`;
-      }
-      // Rest: emerald (142°) → teal (188°)
-      return `hsl(${lerp(142, 188, progress).toFixed(0)},72%,39%)`;
+      // Inharmonic partials: [frequency multiplier, peak gain, decay seconds]
+      // These ratios approximate a real Tibetan singing bowl
+      [
+        [1.00, 0.55, 5.5],
+        [2.76, 0.35, 4.0],
+        [5.40, 0.22, 2.8],
+        [8.93, 0.10, 1.8],
+        [13.4, 0.05, 1.0],
+      ].forEach(([mult, amp, dec]) => {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = f0 * mult;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(amp * 0.5, t + 0.008); // sharp attack
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + dec);  // long decay
+        osc.start(t);
+        osc.stop(t + dec + 0.05);
+      });
     }
 
+    // ── Fill animation ────────────────────────────────────────
+    // The overlay is dark and anchored at the top of the screen.
+    // It shrinks downward (scaleY 1→0, transform-origin: top),
+    // revealing the phase gradient from the bottom upward.
+    // When the overlay fully disappears, the interval is over.
+    function syncOverlay() {
+      const dur     = phase === 'work' ? workDur : restDur;
+      const elapsed = dur - timeLeft;
+      overlayEl.classList.remove('running');
+      void overlayEl.offsetWidth; // force reflow to restart animation
+      overlayEl.style.animationDuration = dur + 's';
+      overlayEl.style.animationDelay    = `-${elapsed}s`;
+      overlayEl.classList.add('running');
+    }
+
+    // ── Render text ───────────────────────────────────────────
     function render() {
-      const dur = phase === 'work' ? workDur : restDur;
-      const progress = 1 - Math.max(0, timeLeft) / dur;
-
-      document.getElementById('countdown').textContent = fmt(timeLeft);
-      document.getElementById('phaseLabel').textContent = phase === 'work' ? 'Work' : 'Rest';
-      document.getElementById('intervalBadge').textContent = `Interval ${intervalNum}`;
-      document.getElementById('elapsedLabel').textContent = `${fmt(elapsedSecs)} elapsed`;
-      document.getElementById('timer').style.background = timerBg(phase, progress);
+      cdEl.textContent      = fmt(timeLeft);
+      phaseEl.textContent   = phase === 'work' ? 'Work' : 'Rest';
+      badgeEl.textContent   = `Interval ${intervalNum}`;
+      elapsedEl.textContent = `${fmt(elapsedSecs)} elapsed`;
     }
 
+    // ── Tick ─────────────────────────────────────────────────
     function tick() {
       elapsedSecs++;
+
       if (timeLeft > 0) {
         timeLeft--;
+        // Ring gong the moment the countdown hits 0:00
+        if (timeLeft === 0) {
+          playGong();
+          if (navigator.vibrate) navigator.vibrate([30, 50, 80]);
+        }
+        render();
       } else {
-        if (navigator.vibrate) navigator.vibrate([30, 50, 80]);
+        // Switch phase
         if (phase === 'work') {
-          phase = 'rest';
+          phase    = 'rest';
           timeLeft = restDur;
         } else {
-          phase = 'work';
+          phase    = 'work';
           timeLeft = workDur;
           intervalNum++;
         }
+        bgEl.style.background = phase === 'work' ? WORK_GRAD : REST_GRAD;
+        syncOverlay();
+        render();
       }
-      render();
     }
 
+    // ── Wake lock ─────────────────────────────────────────────
     async function requestWakeLock() {
       if ('wakeLock' in navigator) {
         try { wakeLock = await navigator.wakeLock.request('screen'); } catch (_) {}
       }
     }
 
+    // ── Start / Stop ──────────────────────────────────────────
     function startTimer() {
-      phase = 'work';
-      timeLeft = workDur;
+      phase       = 'work';
+      timeLeft    = workDur;
       intervalNum = 1;
       elapsedSecs = 0;
 
+      // Create AudioContext on user gesture so audio is allowed on mobile
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      bgEl.style.background = WORK_GRAD;
       document.getElementById('setup').classList.add('hidden');
       document.getElementById('timer').classList.remove('hidden');
+
       render();
+      syncOverlay();
       requestWakeLock();
       tickId = setInterval(tick, 1000);
     }
@@ -352,13 +446,19 @@
     function stopTimer() {
       clearInterval(tickId); tickId = null;
       if (wakeLock) { wakeLock.release(); wakeLock = null; }
+      if (audioCtx) { audioCtx.close(); audioCtx = null; }
+      overlayEl.classList.remove('running');
       document.getElementById('timer').classList.add('hidden');
       document.getElementById('setup').classList.remove('hidden');
     }
 
-    // Re-acquire wake lock when tab comes back into focus
+    // Re-sync animation when tab comes back (CSS animations pause when hidden)
     document.addEventListener('visibilitychange', () => {
-      if (tickId && document.visibilityState === 'visible') requestWakeLock();
+      if (!tickId) return;
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+        syncOverlay();
+      }
     });
   </script>
 </body>
