@@ -39,84 +39,84 @@
       overflow: hidden;
     }
 
-    /* ── Header ── */
-    .header {
-      padding: max(18px, env(safe-area-inset-top, 18px)) 22px 8px;
-      flex-shrink: 0;
-    }
-
-    .nav-row {
+    /* ── Compact top bar — minimal chrome so tiles get the screen ── */
+    .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      gap: 10px;
+      padding: max(8px, env(safe-area-inset-top, 8px)) 16px 7px;
+      flex-shrink: 0;
     }
 
     .back {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 0.83rem;
-      letter-spacing: 0.01em;
+      flex-shrink: 0;
+      padding: 2px;
     }
 
-    .back svg { width: 7px; height: 11px; }
+    .back svg { width: 8px; height: 13px; }
+
+    .title-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .date-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .count {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
 
     .reset-btn {
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       cursor: pointer;
       font-family: inherit;
       letter-spacing: 0.04em;
       padding: 0;
+      flex-shrink: 0;
     }
 
     .reset-btn:active { opacity: 0.4; }
 
-    h1 {
-      font-size: 1.9rem;
-      font-weight: 600;
-      letter-spacing: -0.6px;
-      line-height: 1;
-      color: var(--text);
-    }
-
-    .date-sub {
-      font-size: 0.73rem;
-      color: var(--text-muted);
-      margin-top: 3px;
-      letter-spacing: 0.01em;
-    }
-
-    /* ── Progress ── */
-    .prog-wrap {
-      padding: 10px 22px 10px;
-      flex-shrink: 0;
-    }
-
+    /* ── Progress (full-width hairline under the bar) ── */
     .prog-track {
-      height: 1px;
+      height: 2px;
       background: var(--border);
-      border-radius: 1px;
       overflow: hidden;
-      margin-bottom: 6px;
+      flex-shrink: 0;
     }
 
     .prog-fill {
       height: 100%;
       background: var(--pencil);
-      border-radius: 1px;
       transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .prog-label {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      letter-spacing: 0.03em;
     }
 
     /* ── All-done banner ── */
@@ -382,26 +382,23 @@
 </head>
 <body>
 
-  <div class="header">
-    <div class="nav-row">
-      <a class="back" href="index.html">
-        <svg viewBox="0 0 7 11" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6,1 1,5.5 6,10"/>
-        </svg>
-        Home
-      </a>
-      <button class="reset-btn" onclick="resetToday()">Reset</button>
+  <div class="topbar">
+    <a class="back" href="index.html" aria-label="Home">
+      <svg viewBox="0 0 7 11" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6,1 1,5.5 6,10"/>
+      </svg>
+    </a>
+    <div class="title-wrap">
+      <span class="title">Morning</span>
+      <span class="date-sub" id="dateSub"></span>
     </div>
-    <h1>Morning</h1>
-    <div class="date-sub" id="dateSub"></div>
+    <span class="count" id="progLabel">0/0</span>
+    <button class="reset-btn" onclick="resetToday()">Reset</button>
   </div>
 
-  <div class="prog-wrap">
-    <div class="prog-track">
-      <div class="prog-fill" id="progFill" style="width:0%"></div>
-    </div>
-    <div class="prog-label" id="progLabel">0 of 0 done</div>
+  <div class="prog-track">
+    <div class="prog-fill" id="progFill" style="width:0%"></div>
   </div>
 
   <div class="banner" id="banner">All done — have a good day.</div>
@@ -455,8 +452,8 @@
       { text: 'Work jacket',                group: 'pack' },
     ];
 
-    const APP_VERSION = '1.1';
-    const APP_UPDATED = '13 Jun 2026, 8:21 pm';
+    const APP_VERSION = '1.2';
+    const APP_UPDATED = '13 Jun 2026, 8:27 pm';
 
     // Separate storage from the list-style morning checklist — this is its own app.
     const TASKS_KEY = 'grid_tasks_v1';
@@ -607,12 +604,12 @@
 
     function render() {
       document.getElementById('dateSub').textContent = new Date().toLocaleDateString('en-NZ', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        weekday: 'short', month: 'short', day: 'numeric',
       });
 
       const doneCount = state.done.filter(Boolean).length;
       const total = tasks.length;
-      document.getElementById('progLabel').textContent = `${doneCount} of ${total} done`;
+      document.getElementById('progLabel').textContent = `${doneCount}/${total}`;
       document.getElementById('progFill').style.width = total ? `${(doneCount / total) * 100}%` : '0%';
 
       const allDone = total > 0 && doneCount === total;
