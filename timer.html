@@ -84,7 +84,7 @@
     }
 
     #restPills {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
     }
 
     .pill {
@@ -278,6 +278,7 @@
     <div class="s-card">
       <div class="s-card-label">Rest</div>
       <div class="pill-row" id="restPills">
+        <button class="pill" data-val="0">0s</button>
         <button class="pill selected" data-val="5">5s</button>
         <button class="pill" data-val="10">10s</button>
         <button class="pill" data-val="15">15s</button>
@@ -407,7 +408,7 @@
         render();
       } else {
         // Switch phase
-        if (phase === 'work') {
+        if (phase === 'work' && restDur > 0) {
           phase    = 'rest';
           timeLeft = restDur;
         } else {
