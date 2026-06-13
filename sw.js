@@ -1,5 +1,9 @@
-const CACHE = 'morning-v3';
-const URLS  = ['./morning-checklist.html', './manifest.json', './icon.svg'];
+const CACHE = 'morning-v4';
+const URLS  = [
+  './morning-checklist.html', './manifest.json',
+  './morning-grid.html', './manifest-grid.json',
+  './icon.svg',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(URLS)));
