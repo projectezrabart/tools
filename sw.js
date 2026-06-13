@@ -1,4 +1,4 @@
-const CACHE = 'morning-v5';
+const CACHE = 'morning-v6';
 const URLS  = [
   './morning-checklist.html', './manifest.json',
   './morning-grid.html', './manifest-grid.json',
