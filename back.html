@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Upper Back Routine</title>
+  <style>
+    * {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                   "SF Pro Text", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ═══════════════════════════════════
+       START SCREEN
+    ═══════════════════════════════════ */
+    #start {
+      background: #F5F5F7;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding:
+        max(24px, env(safe-area-inset-top, 24px))
+        24px
+        max(28px, env(safe-area-inset-bottom, 28px));
+      overflow-y: auto;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #6E6E73;
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+    }
+    .back-link svg { width: 7px; height: 11px; }
+
+    .start-title {
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: #1D1D1F;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .start-sub {
+      font-size: 0.9rem;
+      color: #6E6E73;
+      margin-top: 5px;
+      margin-bottom: 24px;
+    }
+
+    .phase-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-bottom: 20px;
+    }
+
+    .phase-row {
+      background: #FFFFFF;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 3px 10px rgba(0,0,0,0.04);
+    }
+
+    .phase-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .phase-info { flex: 1; }
+
+    .phase-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1D1D1F;
+    }
+
+    .phase-desc {
+      font-size: 0.77rem;
+      color: #6E6E73;
+      margin-top: 1px;
+    }
+
+    .phase-dur {
+      font-size: 0.78rem;
+      color: #6E6E73;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .spacer { flex: 1; min-height: 16px; }
+
+    .begin-btn {
+      width: 100%;
+      padding: 22px;
+      background: #1D1D1F;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      font-family: inherit;
+      letter-spacing: -0.2px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.15s;
+    }
+    .begin-btn:active { opacity: 0.55; }
+
+    /* ═══════════════════════════════════
+       ACTIVE SCREEN
+    ═══════════════════════════════════ */
+    #active {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    /* Gradient background — updated per step */
+    #bg {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* Dark overlay anchored at top, shrinks upward revealing gradient from bottom */
+    #overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #0E0E11;
+      transform-origin: top center;
+      will-change: transform;
+    }
+
+    @keyframes reveal-up {
+      from { transform: scaleY(1); }
+      to   { transform: scaleY(0); }
+    }
+
+    #overlay.running {
+      animation: reveal-up linear forwards;
+    }
+
+    /* Content always above overlay */
+    .a-content {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding:
+        max(48px, env(safe-area-inset-top, 48px))
+        28px
+        max(24px, env(safe-area-inset-bottom, 24px));
+    }
+
+    /* Top: exercise name + context */
+    .a-top { text-align: center; }
+
+    #exerciseName {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }
+
+    #stepContext {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.38);
+      margin-top: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Center: instruction + countdown */
+    .a-mid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    #instruction {
+      font-size: clamp(2.6rem, 11vw, 4.2rem);
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.45);
+    }
+
+    #countdown {
+      font-size: clamp(72px, 20vw, 108px);
+      font-weight: 700;
+      color: rgba(255,255,255,0.88);
+      letter-spacing: -4px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 2px 18px rgba(0,0,0,0.35);
+    }
+
+    /* Bottom: progress bar + remaining + stop */
+    .a-bot {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .prog-track {
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      background: rgba(255,255,255,0.72);
+      border-radius: 2px;
+      transition: width 1s linear;
+      width: 0%;
+    }
+
+    .remaining-lbl {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.35);
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    .stop-btn {
+      background: rgba(255,255,255,0.13);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255,255,255,0.22);
+      border-radius: 50px;
+      color: #FFFFFF;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 14px 44px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.15s;
+    }
+    .stop-btn:active { opacity: 0.45; }
+
+    /* ═══════════════════════════════════
+       DONE SCREEN
+    ═══════════════════════════════════ */
+    #done {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(160deg, #1A1A2E, #16213E);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .done-title {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .done-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .done-btn {
+      margin-top: 28px;
+      padding: 18px 52px;
+      background: #FFFFFF;
+      color: #1D1D1F;
+      border: none;
+      border-radius: 50px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .done-btn:active { opacity: 0.6; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Start ── -->
+  <div id="start">
+    <a class="back-link" href="index.html">
+      <svg viewBox="0 0 7 11" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6,1 1,5.5 6,10"/>
+      </svg>
+      Home
+    </a>
+
+    <div class="start-title">Upper Back Routine</div>
+    <div class="start-sub" id="totalDurLabel">Loading…</div>
+
+    <div class="phase-list">
+      <div class="phase-row">
+        <div class="phase-dot" style="background:#FFB340"></div>
+        <div class="phase-info">
+          <div class="phase-name">Foam Roller</div>
+          <div class="phase-desc">Static lie — upper back release</div>
+        </div>
+        <div class="phase-dur">1 min</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-dot" style="background:#0A84FF"></div>
+        <div class="phase-info">
+          <div class="phase-name">Thread the Needle</div>
+          <div class="phase-desc">Left · Right · Left · Right, 10s each side</div>
+        </div>
+        <div class="phase-dur">40 s</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-dot" style="background:#FF453A"></div>
+        <div class="phase-info">
+          <div class="phase-name">Supermans</div>
+          <div class="phase-desc">2 sets of 10 — 10s hold, 5s rest each rep</div>
+        </div>
+        <div class="phase-dur">5½ min</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-dot" style="background:#32ADE6"></div>
+        <div class="phase-info">
+          <div class="phase-name">Extended Cat Pose</div>
+          <div class="phase-desc">Hold and breathe deeply</div>
+        </div>
+        <div class="phase-dur">1 min</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-dot" style="background:#FFB340"></div>
+        <div class="phase-info">
+          <div class="phase-name">Foam Roller</div>
+          <div class="phase-desc">Final release</div>
+        </div>
+        <div class="phase-dur">1 min</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="begin-btn" onclick="beginWorkout()">Begin</button>
+  </div>
+
+  <!-- ── Active ── -->
+  <div id="active" class="hidden">
+    <div id="bg"></div>
+    <div id="overlay"></div>
+    <div class="a-content">
+      <div class="a-top">
+        <div id="exerciseName"></div>
+        <div id="stepContext"></div>
+      </div>
+      <div class="a-mid">
+        <div id="instruction"></div>
+        <div id="countdown"></div>
+      </div>
+      <div class="a-bot">
+        <div class="progress-wrap">
+          <div class="prog-track">
+            <div class="prog-fill" id="progFill"></div>
+          </div>
+          <div class="remaining-lbl" id="remainingLbl"></div>
+        </div>
+        <button class="stop-btn" onclick="stopWorkout()">Stop</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Done ── -->
+  <div id="done" class="hidden">
+    <div class="done-title">Workout Complete</div>
+    <div class="done-sub" id="doneTime"></div>
+    <button class="done-btn" onclick="location.href='index.html'">Done</button>
+  </div>
+
+  <script>
+    // ── Gradients ─────────────────────────────────────────────
+    const G = {
+      FOAM:  'linear-gradient(to top, #7A5000 0%, #C87800 40%, #FFB340 75%, #FFE5A0 100%)',
+      NL:    'linear-gradient(to top, #003880 0%, #0A84FF 55%, #32ADE6 100%)',
+      NR:    'linear-gradient(to top, #1C0D6B 0%, #5856D6 55%, #9B8FF5 100%)',
+      HOLD:  'linear-gradient(to top, #7A0000 0%, #FF453A 50%, #FF9F0A 100%)',
+      DOWN:  'linear-gradient(to top, #0D4020 0%, #30D158 55%, #6EE09A 100%)',
+      REST:  'linear-gradient(to top, #1C0A50 0%, #5856D6 55%, #BF5AF2 100%)',
+      CAT:   'linear-gradient(to top, #00375A 0%, #32ADE6 50%, #5856D6 100%)',
+    };
+
+    // ── Build the step sequence ───────────────────────────────
+    function buildSteps() {
+      const s = [];
+      const add = (exercise, instruction, context, duration, gradient) =>
+        s.push({ exercise, instruction, context, duration, gradient });
+
+      // 1. Foam Roller
+      add('Foam Roller', 'Lie Still', 'Upper back relaxing into the roller', 60, G.FOAM);
+
+      // 2. Thread the Needle — L R L R
+      [
+        ['Left Side',  'First pass',  G.NL],
+        ['Right Side', 'First pass',  G.NR],
+        ['Left Side',  'Second pass', G.NL],
+        ['Right Side', 'Second pass', G.NR],
+      ].forEach(([ins, ctx, grad]) => add('Thread the Needle', ins, ctx, 10, grad));
+
+      // 3 + 5. Supermans — 2 sets of 10
+      for (let set = 1; set <= 2; set++) {
+        if (set === 2) {
+          add('Set 1 Complete', 'Rest', 'Set 2 begins when this ends', 30, G.REST);
+        }
+        for (let rep = 1; rep <= 10; rep++) {
+          const isLast = rep === 10;
+          add(
+            `Supermans — Set ${set}`,
+            'HOLD',
+            `Rep ${rep} of 10`,
+            10, G.HOLD
+          );
+          add(
+            `Supermans — Set ${set}`,
+            'GO DOWN',
+            isLast
+              ? (set === 1 ? '30s rest coming up' : 'Set 2 complete — great work')
+              : `Rep ${rep + 1} coming up`,
+            5, G.DOWN
+          );
+        }
+      }
+
+      // 6. Extended Cat Pose
+      add('Extended Cat Pose', 'Hold the Pose', 'Breathe deeply — relax into the stretch', 60, G.CAT);
+
+      // 7. Final Foam Roller
+      add('Foam Roller', 'Lie Still', 'Final release — almost done', 60, G.FOAM);
+
+      return s;
+    }
+
+    const STEPS      = buildSteps();
+    const TOTAL_SECS = STEPS.reduce((a, s) => a + s.duration, 0);
+
+    // Show total duration on start screen
+    (() => {
+      const m = Math.floor(TOTAL_SECS / 60), sec = TOTAL_SECS % 60;
+      document.getElementById('totalDurLabel').textContent =
+        `${m} minutes${sec ? ` ${sec} seconds` : ''} total`;
+    })();
+
+    // ── State ─────────────────────────────────────────────────
+    let stepIdx = 0, timeLeft = 0, elapsedSecs = 0;
+    let tickId = null, wakeLock = null, audioCtx = null;
+
+    const bgEl      = document.getElementById('bg');
+    const overlayEl = document.getElementById('overlay');
+    const exEl      = document.getElementById('exerciseName');
+    const ctxEl     = document.getElementById('stepContext');
+    const insEl     = document.getElementById('instruction');
+    const cdEl      = document.getElementById('countdown');
+    const progEl    = document.getElementById('progFill');
+    const remEl     = document.getElementById('remainingLbl');
+
+    // ── Helpers ───────────────────────────────────────────────
+    function fmt(s) {
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    // ── Gong (Tibetan bowl synthesis) ─────────────────────────
+    function playGong() {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const t = audioCtx.currentTime, f0 = 196;
+      [
+        [1.00, 0.55, 5.5],
+        [2.76, 0.35, 4.0],
+        [5.40, 0.22, 2.8],
+        [8.93, 0.10, 1.8],
+        [13.4, 0.05, 1.0],
+      ].forEach(([mult, amp, dec]) => {
+        const osc = audioCtx.createOscillator();
+        const g   = audioCtx.createGain();
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.type = 'sine'; osc.frequency.value = f0 * mult;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(amp * 0.5, t + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+        osc.start(t); osc.stop(t + dec + 0.05);
+      });
+    }
+
+    // ── Fill animation ────────────────────────────────────────
+    function syncOverlay() {
+      const dur     = STEPS[stepIdx].duration;
+      const elapsed = dur - timeLeft;
+      overlayEl.classList.remove('running');
+      void overlayEl.offsetWidth;
+      overlayEl.style.animationDuration = dur + 's';
+      overlayEl.style.animationDelay    = `-${elapsed}s`;
+      overlayEl.classList.add('running');
+    }
+
+    // ── Render ────────────────────────────────────────────────
+    function render() {
+      const step = STEPS[stepIdx];
+      exEl.textContent  = step.exercise;
+      ctxEl.textContent = step.context;
+      insEl.textContent = step.instruction;
+      cdEl.textContent  = fmt(timeLeft);
+
+      const pct = Math.min(100, (elapsedSecs / TOTAL_SECS) * 100);
+      progEl.style.width = pct + '%';
+      remEl.textContent  = fmt(Math.max(0, TOTAL_SECS - elapsedSecs)) + ' remaining';
+    }
+
+    // ── Load a step ───────────────────────────────────────────
+    function loadStep(idx) {
+      stepIdx  = idx;
+      timeLeft = STEPS[idx].duration;
+      bgEl.style.background = STEPS[idx].gradient;
+      syncOverlay();
+      render();
+    }
+
+    // ── Tick ─────────────────────────────────────────────────
+    function tick() {
+      elapsedSecs++;
+
+      if (timeLeft > 0) {
+        timeLeft--;
+        if (timeLeft === 0) {
+          playGong();
+          if (navigator.vibrate) navigator.vibrate([30, 50, 80]);
+        }
+        render();
+      } else {
+        const next = stepIdx + 1;
+        if (next >= STEPS.length) {
+          finishWorkout();
+        } else {
+          loadStep(next);
+        }
+      }
+    }
+
+    // ── Wake lock ─────────────────────────────────────────────
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (_) {}
+      }
+    }
+
+    // ── Begin / Stop / Finish ─────────────────────────────────
+    function beginWorkout() {
+      elapsedSecs = 0;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      document.getElementById('start').classList.add('hidden');
+      document.getElementById('active').classList.remove('hidden');
+      loadStep(0);
+      requestWakeLock();
+      tickId = setInterval(tick, 1000);
+    }
+
+    function stopWorkout() {
+      clearInterval(tickId); tickId = null;
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
+      if (audioCtx) { audioCtx.close(); audioCtx = null; }
+      overlayEl.classList.remove('running');
+      document.getElementById('active').classList.add('hidden');
+      document.getElementById('start').classList.remove('hidden');
+    }
+
+    function finishWorkout() {
+      clearInterval(tickId); tickId = null;
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
+      overlayEl.classList.remove('running');
+      document.getElementById('active').classList.add('hidden');
+      document.getElementById('done').classList.remove('hidden');
+      document.getElementById('doneTime').textContent = `Completed in ${fmt(elapsedSecs)}`;
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!tickId) return;
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+        syncOverlay();
+      }
+    });
+  </script>
+</body>
+</html>
