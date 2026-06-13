@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Interval Timer</title>
+  <style>
+    * {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                   "SF Pro Text", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ══════════════════════
+       SETUP SCREEN
+    ══════════════════════ */
+    #setup {
+      background: #F5F5F7;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding:
+        max(24px, env(safe-area-inset-top, 24px))
+        24px
+        max(28px, env(safe-area-inset-bottom, 28px));
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #6E6E73;
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 28px;
+    }
+    .back-link svg { width: 7px; height: 11px; }
+
+    .setup-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #1D1D1F;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .setup-sub {
+      font-size: 0.9rem;
+      color: #6E6E73;
+      margin-top: 6px;
+      margin-bottom: 30px;
+    }
+
+    .s-card {
+      background: #FFFFFF;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    .s-card-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: #6E6E73;
+      margin-bottom: 13px;
+    }
+
+    .pill-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .pill {
+      background: #F0F0F2;
+      border: none;
+      border-radius: 12px;
+      padding: 16px 4px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #1D1D1F;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      user-select: none;
+      transition: background 0.1s, color 0.1s, transform 0.1s;
+    }
+
+    .pill.selected {
+      background: #1D1D1F;
+      color: #FFFFFF;
+    }
+
+    .pill:active { transform: scale(0.91); }
+
+    .spacer { flex: 1; }
+
+    .start-btn {
+      width: 100%;
+      padding: 22px;
+      background: #1D1D1F;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      font-family: inherit;
+      letter-spacing: -0.2px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.15s;
+    }
+
+    .start-btn:active { opacity: 0.55; }
+
+    /* ══════════════════════
+       TIMER SCREEN
+    ══════════════════════ */
+    #timer {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding:
+        max(52px, env(safe-area-inset-top, 52px))
+        32px
+        max(36px, env(safe-area-inset-bottom, 36px));
+      background: hsl(211, 100%, 48%);
+      transition: background 0.9s ease;
+    }
+
+    /* Top */
+    .t-top { text-align: center; }
+
+    .interval-badge {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }
+
+    /* Center */
+    .t-mid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    #countdown {
+      font-size: clamp(104px, 28vw, 152px);
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -6px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #phaseLabel {
+      font-size: 1.9rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.72);
+      letter-spacing: -0.3px;
+    }
+
+    /* Bottom */
+    .t-bot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #elapsedLabel {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.02em;
+    }
+
+    .stop-btn {
+      background: rgba(255,255,255,0.16);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255,255,255,0.28);
+      border-radius: 50px;
+      color: #FFFFFF;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 16px 48px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.15s;
+    }
+
+    .stop-btn:active { opacity: 0.45; }
+  </style>
+</head>
+<body>
+
+  <!-- Setup -->
+  <div id="setup">
+    <a class="back-link" href="index.html">
+      <svg viewBox="0 0 7 11" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6,1 1,5.5 6,10"/>
+      </svg>
+      Home
+    </a>
+
+    <div class="setup-title">Interval Timer</div>
+    <div class="setup-sub">Set your work &amp; rest durations</div>
+
+    <div class="s-card">
+      <div class="s-card-label">Work</div>
+      <div class="pill-row" id="workPills">
+        <button class="pill" data-val="20">20s</button>
+        <button class="pill" data-val="30">30s</button>
+        <button class="pill selected" data-val="40">40s</button>
+        <button class="pill" data-val="60">60s</button>
+      </div>
+    </div>
+
+    <div class="s-card">
+      <div class="s-card-label">Rest</div>
+      <div class="pill-row" id="restPills">
+        <button class="pill selected" data-val="5">5s</button>
+        <button class="pill" data-val="10">10s</button>
+        <button class="pill" data-val="15">15s</button>
+        <button class="pill" data-val="20">20s</button>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="start-btn" onclick="startTimer()">Start</button>
+  </div>
+
+  <!-- Timer -->
+  <div id="timer" class="hidden">
+    <div class="t-top">
+      <div class="interval-badge" id="intervalBadge">Interval 1</div>
+    </div>
+    <div class="t-mid">
+      <div id="countdown">0:40</div>
+      <div id="phaseLabel">Work</div>
+    </div>
+    <div class="t-bot">
+      <div id="elapsedLabel">0:00 elapsed</div>
+      <button class="stop-btn" onclick="stopTimer()">Stop</button>
+    </div>
+  </div>
+
+  <script>
+    let workDur = 40, restDur = 5;
+    let phase, timeLeft, intervalNum, elapsedSecs;
+    let tickId = null, wakeLock = null;
+
+    // Wire up pill selectors
+    ['work', 'rest'].forEach(type => {
+      document.querySelectorAll(`#${type}Pills .pill`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (type === 'work') workDur = +btn.dataset.val;
+          else restDur = +btn.dataset.val;
+          btn.closest('.pill-row').querySelectorAll('.pill')
+             .forEach(b => b.classList.toggle('selected', b === btn));
+        });
+      });
+    });
+
+    function fmt(s) {
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    function timerBg(ph, progress) {
+      if (ph === 'work') {
+        // Blue (211°) → amber (35°) → red (2°) as time runs out
+        const hue = progress < 0.65
+          ? lerp(211, 35, progress / 0.65)
+          : lerp(35, 2, (progress - 0.65) / 0.35);
+        const light = lerp(48, 54, progress);
+        return `hsl(${hue.toFixed(0)},100%,${light.toFixed(1)}%)`;
+      }
+      // Rest: emerald (142°) → teal (188°)
+      return `hsl(${lerp(142, 188, progress).toFixed(0)},72%,39%)`;
+    }
+
+    function render() {
+      const dur = phase === 'work' ? workDur : restDur;
+      const progress = 1 - Math.max(0, timeLeft) / dur;
+
+      document.getElementById('countdown').textContent = fmt(timeLeft);
+      document.getElementById('phaseLabel').textContent = phase === 'work' ? 'Work' : 'Rest';
+      document.getElementById('intervalBadge').textContent = `Interval ${intervalNum}`;
+      document.getElementById('elapsedLabel').textContent = `${fmt(elapsedSecs)} elapsed`;
+      document.getElementById('timer').style.background = timerBg(phase, progress);
+    }
+
+    function tick() {
+      elapsedSecs++;
+      if (timeLeft > 0) {
+        timeLeft--;
+      } else {
+        if (navigator.vibrate) navigator.vibrate([30, 50, 80]);
+        if (phase === 'work') {
+          phase = 'rest';
+          timeLeft = restDur;
+        } else {
+          phase = 'work';
+          timeLeft = workDur;
+          intervalNum++;
+        }
+      }
+      render();
+    }
+
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (_) {}
+      }
+    }
+
+    function startTimer() {
+      phase = 'work';
+      timeLeft = workDur;
+      intervalNum = 1;
+      elapsedSecs = 0;
+
+      document.getElementById('setup').classList.add('hidden');
+      document.getElementById('timer').classList.remove('hidden');
+      render();
+      requestWakeLock();
+      tickId = setInterval(tick, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(tickId); tickId = null;
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
+      document.getElementById('timer').classList.add('hidden');
+      document.getElementById('setup').classList.remove('hidden');
+    }
+
+    // Re-acquire wake lock when tab comes back into focus
+    document.addEventListener('visibilitychange', () => {
+      if (tickId && document.visibilityState === 'visible') requestWakeLock();
+    });
+  </script>
+</body>
+</html>
