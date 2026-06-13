@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Interval Timer</title>
+  <title>Yoga Timer</title>
   <style>
     * {
       box-sizing: border-box; margin: 0; padding: 0;
@@ -79,8 +79,12 @@
 
     .pill-row {
       display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    #restPills {
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
     }
 
     .pill {
@@ -257,12 +261,13 @@
       Home
     </a>
 
-    <div class="setup-title">Interval Timer</div>
+    <div class="setup-title">Yoga Timer</div>
     <div class="setup-sub">Set your work &amp; rest durations</div>
 
     <div class="s-card">
       <div class="s-card-label">Work</div>
       <div class="pill-row" id="workPills">
+        <button class="pill" data-val="10">10s</button>
         <button class="pill" data-val="20">20s</button>
         <button class="pill" data-val="30">30s</button>
         <button class="pill selected" data-val="40">40s</button>
