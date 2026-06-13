@@ -227,6 +227,45 @@
       transform: scale(1);
     }
 
+    /* Drag grip (top-left). Drag from here to reorder within a section. */
+    .grip {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      padding: 4px;
+      cursor: grab;
+      touch-action: none;
+      opacity: 0.3;
+      z-index: 2;
+    }
+
+    .grip span {
+      display: block;
+      width: 2.5px;
+      height: 2.5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* The floating copy that follows the finger while dragging */
+    .drag-clone {
+      pointer-events: none;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      transform: scale(1.05);
+      opacity: 0.95;
+    }
+
+    /* The original tile left behind in the grid while its clone is dragged */
+    .drag-placeholder { opacity: 0.28; }
+
+    /* Insertion indicator: a pencil bar on the side the item will drop */
+    .tile.drop-before { box-shadow: -3px 0 0 0 var(--pencil); }
+    .tile.drop-after  { box-shadow:  3px 0 0 0 var(--pencil); }
+
     .empty-msg {
       text-align: center;
       color: var(--text-muted);
@@ -452,8 +491,8 @@
       { text: 'Work jacket',                group: 'pack' },
     ];
 
-    const APP_VERSION = '1.2';
-    const APP_UPDATED = '13 Jun 2026, 8:27 pm';
+    const APP_VERSION = '1.3';
+    const APP_UPDATED = '13 Jun 2026, 8:31 pm';
 
     // Separate storage from the list-style morning checklist — this is its own app.
     const TASKS_KEY = 'grid_tasks_v1';
@@ -581,6 +620,8 @@
     const CHECK_SVG = `<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
+    const GRIP_SVG = `<span class="grip" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></span>`;
+
     const GROUPS = [
       { key: 'Prep', label: 'Prep', match: t => !t.group },
       { key: 'Pack', label: 'Pack', match: t => t.group === 'pack' },
@@ -642,6 +683,7 @@
         for (const { t, i } of items) {
           const cls = `tile${state.done[i] ? ' is-done' : ''}`;
           html += `<button class="${cls}" data-idx="${i}">
+            ${GRIP_SVG}
             ${CHECK_SVG}
             <span class="tile-text">${escHtml(t.text)}</span>
           </button>`;
@@ -657,17 +699,106 @@
       document.getElementById('taskList').innerHTML = html;
     }
 
+    // ── Reorder: move a task within its section to a new position ─────────
+    const taskGroup = i => tasks[i].group || null;
+    const orderedIndices = g => tasks.map((t, i) => i).filter(i => taskGroup(i) === g);
+
+    function reorder(fromIdx, targetIdx, after) {
+      const group = taskGroup(fromIdx);
+      let groupList = orderedIndices(group);
+      const fromPos = groupList.indexOf(fromIdx);
+      const targetPos = groupList.indexOf(targetIdx);
+      let newPos = after ? targetPos + 1 : targetPos;
+      groupList.splice(fromPos, 1);
+      if (newPos > fromPos) newPos--;
+      groupList.splice(newPos, 0, fromIdx);
+
+      // Rebuild the flat arrays, keeping section display order (Prep, then Pack)
+      // and the untouched section's existing order.
+      const newOrder = [
+        ...(group === null   ? groupList : orderedIndices(null)),
+        ...(group === 'pack' ? groupList : orderedIndices('pack')),
+      ];
+      tasks = newOrder.map(i => tasks[i]);
+      state.done = newOrder.map(i => state.done[i]);
+      save(); render();
+    }
+
     // ── Touch / click handling (delegated, attached once) ─────────────────
-    // Tap → toggle. Long-press (500ms) → edit. Right-click → edit (desktop).
+    // Tap → toggle. Long-press (500ms) → edit. Drag from grip → reorder.
+    // Right-click → edit (desktop).
     const listEl = document.getElementById('taskList');
     let touchInfo    = null;   // { idx, x, y, moved, longFired }
     let lpTimer      = null;
     let suppressClick = false;
+    let drag         = null;   // { idx, group, el, clone, offsetX, offsetY, targetIdx, after }
+
+    function beginDrag(tile, idx, touch) {
+      const rect = tile.getBoundingClientRect();
+      const clone = tile.cloneNode(true);
+      clone.classList.add('drag-clone');
+      clone.style.position = 'fixed';
+      clone.style.margin = '0';
+      clone.style.left = rect.left + 'px';
+      clone.style.top = rect.top + 'px';
+      clone.style.width = rect.width + 'px';
+      clone.style.height = rect.height + 'px';
+      document.body.appendChild(clone);
+      tile.classList.add('drag-placeholder');
+      drag = {
+        idx, group: taskGroup(idx), el: tile, clone,
+        offsetX: touch.clientX - rect.left,
+        offsetY: touch.clientY - rect.top,
+        targetIdx: null, after: false,
+      };
+      haptic(30);
+    }
+
+    function dragMove(touch) {
+      drag.clone.style.left = (touch.clientX - drag.offsetX) + 'px';
+      drag.clone.style.top  = (touch.clientY - drag.offsetY) + 'px';
+
+      document.querySelectorAll('.drop-before, .drop-after')
+        .forEach(el => el.classList.remove('drop-before', 'drop-after'));
+      drag.targetIdx = null;
+
+      const under = document.elementFromPoint(touch.clientX, touch.clientY);
+      const tile = under && under.closest('.tile');
+      if (tile && tile !== drag.el) {
+        const tIdx = parseInt(tile.dataset.idx);
+        if (taskGroup(tIdx) === drag.group) {     // only reorder within a section
+          const r = tile.getBoundingClientRect();
+          const after = touch.clientX > r.left + r.width / 2;
+          tile.classList.add(after ? 'drop-after' : 'drop-before');
+          drag.targetIdx = tIdx;
+          drag.after = after;
+        }
+      }
+    }
+
+    function endDrag() {
+      const d = drag;
+      drag = null;
+      d.clone.remove();
+      d.el.classList.remove('drag-placeholder');
+      document.querySelectorAll('.drop-before, .drop-after')
+        .forEach(el => el.classList.remove('drop-before', 'drop-after'));
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 400);
+      if (d.targetIdx !== null && d.targetIdx !== d.idx) {
+        haptic([20, 30, 40]);
+        reorder(d.idx, d.targetIdx, d.after);
+      }
+    }
 
     listEl.addEventListener('touchstart', e => {
       const tile = e.target.closest('.tile');
       if (!tile) return;
       const idx = parseInt(tile.dataset.idx);
+      if (e.target.closest('.grip')) {           // drag handle
+        beginDrag(tile, idx, e.touches[0]);
+        return;
+      }
       touchInfo = { idx, x: e.touches[0].clientX, y: e.touches[0].clientY, moved: false, longFired: false };
       clearTimeout(lpTimer);
       lpTimer = setTimeout(() => {
@@ -678,14 +809,17 @@
       }, 500);
     }, { passive: true });
 
-    listEl.addEventListener('touchmove', e => {
+    // Non-passive so we can preventDefault (stop scrolling) while dragging.
+    document.addEventListener('touchmove', e => {
+      if (drag) { e.preventDefault(); dragMove(e.touches[0]); return; }
       if (!touchInfo) return;
       const dx = Math.abs(e.touches[0].clientX - touchInfo.x);
       const dy = Math.abs(e.touches[0].clientY - touchInfo.y);
       if (dx > 12 || dy > 12) { touchInfo.moved = true; clearTimeout(lpTimer); }
-    }, { passive: true });
+    }, { passive: false });
 
-    listEl.addEventListener('touchend', () => {
+    document.addEventListener('touchend', () => {
+      if (drag) { endDrag(); return; }
       clearTimeout(lpTimer);
       if (!touchInfo) return;
       const info = touchInfo;
@@ -697,13 +831,15 @@
       toggle(info.idx);
     });
 
-    listEl.addEventListener('touchcancel', () => {
+    document.addEventListener('touchcancel', () => {
+      if (drag) { endDrag(); return; }
       clearTimeout(lpTimer);
       touchInfo = null;
     });
 
     listEl.addEventListener('click', e => {
-      if (suppressClick) return;            // ignore the touch-synthesised click
+      if (suppressClick) return;               // ignore the touch-synthesised click
+      if (e.target.closest('.grip')) return;   // grip is for dragging, not toggling
       const tile = e.target.closest('.tile');
       if (!tile) return;
       toggle(parseInt(tile.dataset.idx));
